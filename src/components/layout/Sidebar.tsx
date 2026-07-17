@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Notifications from "@/components/social/Notifications";
 import { clsx } from "clsx";
 import {
   LayoutDashboard,
@@ -106,7 +107,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-        <ThemeToggle />
+        <div className="flex items-center justify-between">
+          <ThemeToggle />
+          <Notifications />
+        </div>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-all duration-200"
