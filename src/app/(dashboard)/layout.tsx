@@ -7,6 +7,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import Sidebar from "@/components/layout/Sidebar";
+import BottomNav from "@/components/layout/BottomNav";
 import { motion } from "framer-motion";
 
 export default function DashboardLayout({
@@ -66,8 +67,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Sidebar />
-      <main className="pl-64">
-        <div className="p-8">
+      <BottomNav />
+      <main className="pl-0 lg:pl-64 pb-20 lg:pb-0">
+        <div className="p-4 lg:p-8">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

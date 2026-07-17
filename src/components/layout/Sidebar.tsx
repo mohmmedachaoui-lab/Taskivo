@@ -9,9 +9,13 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import { clsx } from "clsx";
 import {
   LayoutDashboard,
-  Users,
+  CheckSquare,
+  AlarmClock,
+  Swords,
+  Timer,
+  BarChart3,
+  Settings,
   Trophy,
-  Gamepad2,
   Sparkles,
   LogOut,
   Zap,
@@ -19,10 +23,14 @@ import {
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/friends", label: "Friends", icon: Users },
-  { href: "/guilds", label: "Guilds", icon: Gamepad2 },
+  { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/alarm", label: "Alarm", icon: AlarmClock },
+  { href: "/duels", label: "Duels", icon: Swords },
+  { href: "/focus", label: "Focus", icon: Timer },
+  { href: "/stats", label: "Stats", icon: BarChart3 },
   { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/ai-agent", label: "AI Agent", icon: Sparkles },
+  { href: "/friends", label: "Friends", icon: Sparkles },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -36,10 +44,10 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 flex flex-col">
+    <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 flex-col">
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
             <Zap className="h-6 w-6 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -58,8 +66,8 @@ export default function Sidebar() {
                 className="h-10 w-10 rounded-full"
               />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                <span className="text-blue-600 font-semibold">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">
                   {profile.callsign[0].toUpperCase()}
                 </span>
               </div>
@@ -69,14 +77,14 @@ export default function Sidebar() {
                 {profile.callsign}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                {profile.rank}
+                {profile.rank} &middot; Lvl {profile.level}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -84,19 +92,14 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={clsx(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.1)]"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
               )}
             >
               <item.icon className="h-5 w-5" />
               {item.label}
-              {item.label === "AI Agent" && (
-                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400">
-                  Soon
-                </span>
-              )}
             </Link>
           );
         })}
@@ -106,7 +109,7 @@ export default function Sidebar() {
         <ThemeToggle />
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-all duration-200"
         >
           <LogOut className="h-5 w-5" />
           Sign out
