@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { AlarmClock, Plus, Trash2, Clock } from "lucide-react";
+import MathChallenge from "@/components/ui/MathChallenge";
+import { AlarmClock, Plus, Trash2, Clock, Volume2, Settings2 } from "lucide-react";
+
+type Difficulty = "easy" | "medium" | "hard";
 
 interface Alarm {
   id: string;
@@ -12,15 +15,60 @@ interface Alarm {
   label: string;
   active: boolean;
   days: string[];
+  difficulty: Difficulty;
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const ALARM_SOUNDS = [
+  { id: "gentle", label: "Gentle Chime", url: "" },
+  { id: "urgent", label: "Urgent Alert", url: "" },
+  { id: "nature", label: "Nature Ambience", url: "" },
+];
 
 export default function AlarmPage() {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newTime, setNewTime] = useState("09:00");
   const [newLabel, setNewLabel] = useState("");
+  const [newDifficulty, setNewDifficulty] = useState<Difficulty>("medium");
+  const [activeAlarm, setActiveAlarm] = useState<Alarm | null>(null);
+  const [showChallenge, setShowChallenge] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const checkAlarms = useCallback(() => {
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const currentDay = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1];
+
+    alarms.forEach((alarm) => {
+      if (alarm.active && alarm.time === currentTime && alarm.days.includes(currentDay)) {
+        if (!showChallenge) {
+          setActiveAlarm(alarm);
+          setShowChallenge(true);
+        }
+      }
+    });
+  }, [alarms, showChallenge]);
+
+  useEffect(() => {
+    const interval = setInterval(checkAlarms, 1000);
+    return () => clearInterval(interval);
+  }, [checkAlarms]);
+
+  useEffect(() => {
+    if (showChallenge) {
+      audioRef.current = new Audio();
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.5;
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [showChallenge]);
 
   const toggleAlarm = (id: string) => {
     setAlarms((prev) =>
@@ -42,10 +90,23 @@ export default function AlarmPage() {
         label: newLabel,
         active: true,
         days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        difficulty: newDifficulty,
       },
     ]);
     setNewLabel("");
     setShowAdd(false);
+  };
+
+  const dismissAlarm = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setShowChallenge(false);
+    setActiveAlarm(null);
+  };
+
+  const toggleDay = (day: string) => {
+    // This is used when adding new alarms
   };
 
   return (
@@ -56,7 +117,7 @@ export default function AlarmPage() {
             Smart Alarm
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Set focus-based alarms to stay on track
+            Alarms with math challenges — solve to dismiss
           </p>
         </div>
         <Button onClick={() => setShowAdd(!showAdd)} className="gap-2">
@@ -72,9 +133,7 @@ export default function AlarmPage() {
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div>
-                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">
-                      Time
-                    </label>
+                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Time</label>
                     <input
                       type="time"
                       value={newTime}
@@ -83,19 +142,51 @@ export default function AlarmPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">
-                      Label
-                    </label>
+                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">Label</label>
                     <input
                       type="text"
                       value={newLabel}
                       onChange={(e) => setNewLabel(e.target.value)}
-                      placeholder="e.g. Deep Work Session"
+                      placeholder="e.g. Morning Focus"
                       className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
                       onKeyDown={(e) => e.key === "Enter" && addAlarm()}
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    <Settings2 className="h-3.5 w-3.5 inline mr-1" />
+                    Math Difficulty
+                  </label>
+                  <div className="flex gap-2">
+                    {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setNewDifficulty(d)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          newDifficulty === d
+                            ? d === "easy"
+                              ? "bg-green-500/10 text-green-500 ring-1 ring-green-500/30"
+                              : d === "medium"
+                              ? "bg-yellow-500/10 text-yellow-500 ring-1 ring-yellow-500/30"
+                              : "bg-red-500/10 text-red-500 ring-1 ring-red-500/30"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        {d.charAt(0).toUpperCase() + d.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    {newDifficulty === "easy"
+                      ? "Simple addition/subtraction (1-20)"
+                      : newDifficulty === "medium"
+                      ? "Mixed operations (10-50)"
+                      : "All operations including division (10-100)"}
+                  </p>
+                </div>
+
                 <div className="flex gap-2">
                   <Button size="sm" onClick={addAlarm}>
                     Add Alarm
@@ -115,7 +206,7 @@ export default function AlarmPage() {
           <AlarmClock className="h-12 w-12 text-gray-300 dark:text-gray-700 mb-3" />
           <p className="text-gray-500 dark:text-gray-400">No alarms set</p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Create an alarm to start your focus routine
+            Create an alarm — solve a math problem to dismiss it
           </p>
         </Card>
       ) : (
@@ -127,43 +218,43 @@ export default function AlarmPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card
-                className={`flex items-center gap-6 ${
-                  alarm.active ? "" : "opacity-50"
-                }`}
-              >
+              <Card className={`flex items-center gap-4 ${alarm.active ? "" : "opacity-50"}`}>
                 <div className="flex items-center gap-3">
-                  <Clock
-                    className={`h-5 w-5 ${
-                      alarm.active ? "text-blue-500" : "text-gray-400"
-                    }`}
-                  />
+                  <Clock className={`h-5 w-5 ${alarm.active ? "text-blue-500" : "text-gray-400"}`} />
                   <div>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
                       {alarm.time}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {alarm.label}
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{alarm.label}</p>
                   </div>
                 </div>
 
-                <div className="flex-1 flex justify-center">
-                  <div className="flex gap-1">
-                    {DAYS.map((day) => (
-                      <span
-                        key={day}
-                        className={`text-[10px] px-1.5 py-0.5 rounded ${
-                          alarm.days.includes(day)
-                            ? "bg-blue-500/10 text-blue-500"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-400"
-                        }`}
-                      >
-                        {day}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex-1 flex justify-center gap-1">
+                  {DAYS.map((day) => (
+                    <span
+                      key={day}
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        alarm.days.includes(day)
+                          ? "bg-blue-500/10 text-blue-500"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                      }`}
+                    >
+                      {day}
+                    </span>
+                  ))}
                 </div>
+
+                <span
+                  className={`text-xs px-2 py-1 rounded-lg font-medium ${
+                    alarm.difficulty === "easy"
+                      ? "bg-green-500/10 text-green-500"
+                      : alarm.difficulty === "medium"
+                      ? "bg-yellow-500/10 text-yellow-500"
+                      : "bg-red-500/10 text-red-500"
+                  }`}
+                >
+                  {alarm.difficulty === "easy" ? "Easy Math" : alarm.difficulty === "medium" ? "Med Math" : "Hard Math"}
+                </span>
 
                 <button
                   onClick={() => toggleAlarm(alarm.id)}
@@ -191,6 +282,40 @@ export default function AlarmPage() {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {showChallenge && activeAlarm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <Card className="max-w-md w-full py-8">
+                <div className="text-center mb-6">
+                  <div className="inline-flex p-3 rounded-2xl bg-red-500/10 mb-4">
+                    <AlarmClock className="h-8 w-8 text-red-500 animate-pulse" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {activeAlarm.label}
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">{activeAlarm.time}</p>
+                </div>
+
+                <MathChallenge
+                  difficulty={activeAlarm.difficulty}
+                  onSolved={dismissAlarm}
+                />
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
