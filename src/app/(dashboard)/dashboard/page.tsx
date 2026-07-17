@@ -24,7 +24,6 @@ export default function DashboardPage() {
   const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
   const rank = getRankTitle(level);
 
-  const neuroScore = 88;
   const tasksDone = stats?.tasksCompleted ?? 0;
   const dayStreak = stats?.currentStreak ?? 0;
   const totalXP = profile?.totalXP ?? 0;
@@ -48,8 +47,7 @@ export default function DashboardPage() {
         >
           <SummaryCard
             title="Neuro Score"
-            value={neuroScore}
-            trend={12}
+            value={0}
             icon={<Brain className="h-5 w-5" />}
             color="from-purple-500 to-indigo-600"
             glow="shadow-purple-500/20"
@@ -63,7 +61,6 @@ export default function DashboardPage() {
           <SummaryCard
             title="Tasks Done"
             value={tasksDone}
-            trend={8}
             icon={<CheckCircle2 className="h-5 w-5" />}
             color="from-green-500 to-emerald-600"
             glow="shadow-green-500/20"
@@ -77,7 +74,6 @@ export default function DashboardPage() {
           <SummaryCard
             title="Day Streak"
             value={`${dayStreak}d`}
-            trend={dayStreak > 0 ? 5 : undefined}
             icon={<Flame className="h-5 w-5" />}
             color="from-orange-500 to-red-500"
             glow="shadow-orange-500/20"
@@ -91,7 +87,6 @@ export default function DashboardPage() {
           <SummaryCard
             title="Total XP"
             value={totalXP.toLocaleString()}
-            trend={15}
             icon={<Zap className="h-5 w-5" />}
             color="from-blue-500 to-cyan-500"
             glow="shadow-blue-500/20"

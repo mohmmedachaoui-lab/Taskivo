@@ -13,10 +13,9 @@ import {
   Zap,
   Target,
   Clock,
+  Activity,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -25,26 +24,6 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-
-const neuroData = [
-  { week: "W1", score: 65 },
-  { week: "W2", score: 72 },
-  { week: "W3", score: 68 },
-  { week: "W4", score: 80 },
-  { week: "W5", score: 85 },
-  { week: "W6", score: 78 },
-  { week: "W7", score: 92 },
-  { week: "W8", score: 88 },
-];
-
-const productivityData = [
-  { month: "Jan", hours: 40 },
-  { month: "Feb", hours: 52 },
-  { month: "Mar", hours: 45 },
-  { month: "Apr", hours: 68 },
-  { month: "May", hours: 72 },
-  { month: "Jun", hours: 85 },
-];
 
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -58,11 +37,30 @@ const ChartTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+function EmptyChart({ title }: { title: string }) {
+  return (
+    <Card>
+      <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+        {title}
+      </h3>
+      <div className="flex flex-col items-center justify-center py-12">
+        <Activity className="h-10 w-10 text-gray-300 dark:text-gray-700 mb-3" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">No data yet</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          Start completing tasks to see trends
+        </p>
+      </div>
+    </Card>
+  );
+}
+
 export default function StatsPage() {
   const { profile, stats } = useAppStore();
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
   const rank = getRankTitle(level);
+
+  const hasChartData = false;
 
   const metrics = [
     {
@@ -159,32 +157,15 @@ export default function StatsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card>
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              Neuro Score Trend
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={neuroData}>
-                <defs>
-                  <linearGradient id="neuroGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" opacity={0.3} />
-                <XAxis dataKey="week" tick={{ fill: "#6b7280", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="score"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fill="url(#neuroGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Card>
+          {hasChartData ? (
+            <Card>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                Neuro Score Trend
+              </h3>
+            </Card>
+          ) : (
+            <EmptyChart title="Neuro Score Trend" />
+          )}
         </motion.div>
 
         <motion.div
@@ -192,32 +173,15 @@ export default function StatsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card>
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              Productivity Hours
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={productivityData}>
-                <defs>
-                  <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" opacity={0.3} />
-                <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="hours"
-                  stroke="#a855f7"
-                  strokeWidth={2}
-                  fill="url(#prodGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Card>
+          {hasChartData ? (
+            <Card>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                Productivity Hours
+              </h3>
+            </Card>
+          ) : (
+            <EmptyChart title="Productivity Hours" />
+          )}
         </motion.div>
       </div>
     </div>

@@ -6,6 +6,8 @@ import { Gamepad2, Plus, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function GuildsPage() {
+  const guilds: any[] = [];
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -23,45 +25,19 @@ export default function GuildsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { name: "Alpha Squad", members: 12, rank: "#3" },
-          { name: "Code Warriors", members: 8, rank: "#7" },
-          { name: "Task Masters", members: 15, rank: "#1" },
-        ].map((guild, i) => (
-          <motion.div
-            key={guild.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: i * 0.1 }}
-          >
-            <Card hover>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                  <Gamepad2 className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {guild.name}
-                  </h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    {guild.rank} Leaderboard
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <Users className="h-4 w-4" />
-                  <span className="text-sm">{guild.members} members</span>
-                </div>
-                <Button variant="secondary" size="sm">
-                  Join
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+      {guilds.length === 0 ? (
+        <Card className="flex flex-col items-center justify-center py-12">
+          <Gamepad2 className="h-12 w-12 text-gray-300 dark:text-gray-700 mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">No guilds available</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Create or join a guild to start competing
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {guilds.map((guild: any, i: number) => null)}
+        </div>
+      )}
     </div>
   );
 }
