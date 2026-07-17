@@ -1,13 +1,13 @@
 "use client";
 
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { getFirebaseAuth, googleProvider } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 
 export default function GoogleSignIn() {
   const handleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(getFirebaseAuth(), googleProvider);
     } catch (error) {
       console.error("Auth error:", error);
     }

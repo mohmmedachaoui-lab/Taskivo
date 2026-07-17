@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { User, ArrowRight } from "lucide-react";
@@ -34,7 +34,7 @@ export default function OnboardingPage() {
     setError("");
 
     try {
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(getFirebaseDb(), "users", user.uid);
       const existing = await getDoc(userRef);
 
       if (existing.exists() && existing.data().onboardingComplete) {
@@ -55,7 +55,7 @@ export default function OnboardingPage() {
         onboardingComplete: true,
       });
 
-      await setDoc(doc(db, "stats", user.uid), {
+      await setDoc(doc(getFirebaseDb(), "stats", user.uid), {
         uid: user.uid,
         tasksCompleted: 0,
         tasksFailed: 0,

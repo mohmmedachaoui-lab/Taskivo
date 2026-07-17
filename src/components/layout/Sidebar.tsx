@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { clsx } from "clsx";
@@ -31,7 +31,7 @@ export default function Sidebar() {
   const { profile } = useAppStore();
 
   const handleSignOut = async () => {
-    await signOut(auth);
+    await signOut(getFirebaseAuth());
     router.push("/");
   };
 

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import Sidebar from "@/components/layout/Sidebar";
 import { motion } from "framer-motion";
@@ -29,8 +29,8 @@ export default function DashboardLayout({
 
     const loadUserData = async () => {
       try {
-        const profileSnap = await getDoc(doc(db, "users", user.uid));
-        const statsSnap = await getDoc(doc(db, "stats", user.uid));
+        const profileSnap = await getDoc(doc(getFirebaseDb(), "users", user.uid));
+        const statsSnap = await getDoc(doc(getFirebaseDb(), "stats", user.uid));
 
         if (profileSnap.exists()) {
           const data = profileSnap.data();
