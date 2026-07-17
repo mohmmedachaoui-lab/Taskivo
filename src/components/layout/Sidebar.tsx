@@ -51,7 +51,7 @@ export default function Sidebar() {
           <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
             <Zap className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
             Taskivo
           </span>
         </Link>
@@ -67,7 +67,7 @@ export default function Sidebar() {
                 className="h-10 w-10 rounded-full"
               />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
                 <span className="text-white font-semibold text-sm">
                   {profile.callsign[0].toUpperCase()}
                 </span>

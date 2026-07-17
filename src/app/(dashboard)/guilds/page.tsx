@@ -79,7 +79,7 @@ export default function GuildsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <Gamepad2 className="h-8 w-8 text-purple-500" />
+            <Gamepad2 className="h-8 w-8 text-cyan-400" />
             Guilds
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -142,7 +142,7 @@ export default function GuildsPage() {
           </h3>
           <Card className="border-blue-500/20 bg-blue-500/5">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-lg">
                 {myGuild.icon}
               </div>
               <div className="flex-1">
@@ -156,8 +156,8 @@ export default function GuildsPage() {
                   <span className="text-xs text-gray-500 flex items-center gap-1">
                     <Users className="h-3 w-3" /> {myGuild.memberCount} members
                   </span>
-                  <span className="text-xs text-purple-500 flex items-center gap-1">
-                    <Zap className="h-3 w-3" /> {myGuild.totalXP.toLocaleString()} XP
+                   <span className="text-xs text-cyan-400 flex items-center gap-1">
+                     <Zap className="h-3 w-3" /> {myGuild.totalXP.toLocaleString()} XP
                   </span>
                 </div>
               </div>
@@ -204,7 +204,7 @@ export default function GuildsPage() {
                     className={isMember ? "ring-1 ring-blue-500/30" : ""}
                   >
                     <div className="flex items-center gap-4 mb-3">
-                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold">
                         {guild.icon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -221,7 +221,7 @@ export default function GuildsPage() {
                         <span className="text-xs text-gray-500 flex items-center gap-1">
                           <Users className="h-3 w-3" /> {guild.memberCount}
                         </span>
-                        <span className="text-xs text-purple-500 flex items-center gap-1">
+                         <span className="text-xs text-cyan-400 flex items-center gap-1">
                           <Zap className="h-3 w-3" />{" "}
                           {guild.totalXP.toLocaleString()}
                         </span>

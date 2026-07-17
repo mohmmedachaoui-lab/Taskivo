@@ -47,7 +47,7 @@ export default function LevelRing({
         <defs>
           <linearGradient id="levelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#00d4ff" />
           </linearGradient>
         </defs>
       </svg>

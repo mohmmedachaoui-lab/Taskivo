@@ -163,7 +163,7 @@ export default function FriendsPage() {
             <div className="space-y-2">
               {searchResults.map((result) => (
                 <Card key={result.uid} className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white text-sm font-bold">
                     {result.callsign[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -249,7 +249,7 @@ export default function FriendsPage() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Card className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white text-sm font-bold">
                     {friend.callsign[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">

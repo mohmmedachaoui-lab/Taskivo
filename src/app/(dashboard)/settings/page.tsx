@@ -64,7 +64,7 @@ export default function SettingsPage() {
             className="h-20 w-20 rounded-2xl"
           />
         ) : (
-          <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
             <User className="h-10 w-10 text-white" />
           </div>
         )}
@@ -79,7 +79,7 @@ export default function SettingsPage() {
             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-medium">
               Level {level}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500 font-medium">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-400 font-medium">
               {rank}
             </span>
             <span className="text-xs text-gray-500">

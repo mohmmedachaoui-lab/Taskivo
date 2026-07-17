@@ -14,7 +14,7 @@ import { calculateWinXP } from "@/lib/xp-engine";
 type Mode = "work" | "break";
 
 const MODES = {
-  work: { duration: 25 * 60, label: "Deep Work", color: "from-blue-500 to-purple-600" },
+  work: { duration: 25 * 60, label: "Deep Work", color: "from-blue-500 to-cyan-400" },
   break: { duration: 5 * 60, label: "Break", color: "from-green-500 to-emerald-600" },
 };
 
@@ -170,7 +170,7 @@ export default function FocusTimer() {
             <defs>
               <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
-                <stop offset="100%" stopColor={mode === "work" ? "#a855f7" : "#10b981"} />
+                <stop offset="100%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
               </linearGradient>
             </defs>
           </svg>
@@ -208,8 +208,8 @@ export default function FocusTimer() {
           <p className="text-sm text-gray-500 dark:text-gray-400">Sessions</p>
         </Card>
         <Card className="text-center">
-          <div className="inline-flex p-2 rounded-xl bg-purple-500/10 mb-2">
-            <Trophy className="h-5 w-5 text-purple-500" />
+          <div className="inline-flex p-2 rounded-xl bg-cyan-400/10 mb-2">
+            <Trophy className="h-5 w-5 text-cyan-400" />
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{sessions * 25}m</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Focus Time</p>

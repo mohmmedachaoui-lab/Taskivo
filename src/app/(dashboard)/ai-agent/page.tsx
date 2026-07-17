@@ -17,7 +17,7 @@ export default function AIAgentPage() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
-          className="h-24 w-24 rounded-3xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-purple-500/25"
+          className="h-24 w-24 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-cyan-400/25"
         >
           <Bot className="h-12 w-12 text-white" />
         </motion.div>
@@ -32,14 +32,14 @@ export default function AIAgentPage() {
         </p>
 
         <div className="flex items-center justify-center gap-3 mb-8">
-          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400 text-sm font-medium">
+          <span className="px-3 py-1 rounded-full bg-cyan-100 text-cyan-500 dark:bg-cyan-900/50 dark:text-cyan-300 text-sm font-medium">
             Coming Soon
           </span>
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 text-left space-y-4">
           <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
+            <Sparkles className="h-5 w-5 text-cyan-400" />
             What to expect
           </h3>
           <ul className="space-y-3">

@@ -49,8 +49,8 @@ export default function DashboardPage() {
             title="Neuro Score"
             value={0}
             icon={<Brain className="h-5 w-5" />}
-            color="from-purple-500 to-indigo-600"
-            glow="shadow-purple-500/20"
+            color="from-cyan-400 to-cyan-500"
+            glow="shadow-cyan-400/20"
           />
         </motion.div>
         <motion.div

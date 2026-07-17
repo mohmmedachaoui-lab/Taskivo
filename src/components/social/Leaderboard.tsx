@@ -177,7 +177,7 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
                     Level {entry.level}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 text-sm font-medium text-purple-500">
+                <div className="flex items-center gap-1 text-sm font-medium text-cyan-400">
                   <Zap className="h-3 w-3" />
                   {entry.totalXP.toLocaleString()}
                 </div>

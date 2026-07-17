@@ -13,8 +13,8 @@ export default function Card({ children, className, hover = false }: CardProps) 
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 dark:border-gray-800 dark:bg-gray-900",
-        hover && "hover:shadow-md hover:border-gray-300 dark:hover:border-gray-700 cursor-pointer",
+        "rounded-2xl border border-gray-800/60 bg-gray-900/80 p-6 shadow-sm transition-all duration-300 backdrop-blur-sm",
+        hover && "hover:border-[#00d4ff]/30 hover:shadow-[0_0_20px_rgba(0,212,255,0.08)] cursor-pointer hover-glow",
         className
       )}
     >

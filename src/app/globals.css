@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-.dark {
   --background: #030712;
   --foreground: #ededed;
+  --neon: #00d4ff;
+  --neon-dim: #00a8cc;
+  --neon-glow: rgba(0, 212, 255, 0.25);
 }
 
 body {
@@ -18,11 +16,7 @@ body {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
-.dark * {
-  scrollbar-color: #374151 transparent;
+  scrollbar-color: #1e293b transparent;
 }
 
 ::-webkit-scrollbar {
@@ -34,10 +28,44 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: #1e293b;
   border-radius: 3px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background-color: #374151;
+@layer utilities {
+  .glow-neon {
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 0.05);
+  }
+  .glow-neon-strong {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.1);
+  }
+  .hover-glow {
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2), 0 0 40px rgba(0, 212, 255, 0.08);
+    transform: translateY(-1px);
+  }
+  .pulse-neon {
+    animation: pulseNeon 2s ease-in-out infinite;
+  }
+  .fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+  }
+}
+
+@keyframes pulseNeon {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

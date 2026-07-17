@@ -95,8 +95,8 @@ export default function StatsPage() {
                 100
             )}%`
           : "0%",
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
     },
     {
       icon: <Clock className="h-5 w-5" />,

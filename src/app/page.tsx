@@ -31,7 +31,7 @@ export default function Home() {
           <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center">
             <Zap className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
             Taskivo
           </span>
         </div>
@@ -47,7 +47,7 @@ export default function Home() {
         >
           <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-6">
             Productivity meets{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
               gaming
             </span>
           </h1>
