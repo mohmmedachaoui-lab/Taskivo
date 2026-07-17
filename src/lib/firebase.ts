@@ -11,17 +11,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let provider: GoogleAuthProvider | undefined;
 
-if (typeof window !== "undefined") {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  auth = getAuth(app);
-  db = getFirestore(app);
-}
-
-export function getApp(): FirebaseApp {
+function getApp(): FirebaseApp {
+  if (typeof window === "undefined") {
+    throw new Error("Firebase can only be used on the client");
+  }
   if (!app) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   }
@@ -42,4 +40,9 @@ export function getFirebaseDb(): Firestore {
   return db;
 }
 
-export const googleProvider = new GoogleAuthProvider();
+export function getGoogleProvider(): GoogleAuthProvider {
+  if (!provider) {
+    provider = new GoogleAuthProvider();
+  }
+  return provider;
+}
