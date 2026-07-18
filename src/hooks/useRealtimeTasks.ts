@@ -38,19 +38,19 @@ export function useRealtimeTasks(uid: string | undefined) {
 
     const unsub = onSnapshot(q, (snap) => {
       const items: RealtimeTask[] = snap.docs.map((d) => {
-        const data = d.data() as any;
-        const subtasks: any[] = data.subtasks ?? [];
-        const done = subtasks.filter((s: any) => s.done).length;
+        const data = d.data() as Record<string, unknown>;
+        const subtasks = (data.subtasks as Array<Record<string, unknown>>) ?? [];
+        const done = subtasks.filter((s) => s.done === true).length;
         return {
           id: d.id,
-          title: data.title ?? "Untitled",
-          category: data.category ?? data.difficulty ?? "task",
+          title: String(data.title ?? "Untitled"),
+          category: String(data.category ?? data.difficulty ?? "task"),
           total: subtasks.length || 1,
           completed: done,
-          urgent: data.urgent ?? false,
-          difficulty: data.difficulty ?? "medium",
-          deadline: data.deadline ?? null,
-          createdAt: data.createdAt ?? Date.now(),
+          urgent: Boolean(data.urgent),
+          difficulty: String(data.difficulty ?? "medium"),
+          deadline: (data.deadline as number) ?? null,
+          createdAt: (data.createdAt as number) ?? Date.now(),
         };
       });
       setTasks(items);

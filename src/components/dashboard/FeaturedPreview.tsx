@@ -1,16 +1,42 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Swords, Zap, Clock, Trophy, CheckCircle2 } from "lucide-react";
+import { X, Swords, Trophy, CheckCircle2 } from "lucide-react";
+
+interface FeaturedPreviewSubtask {
+  done: boolean;
+  title: string;
+}
+
+interface FeaturedPreviewData {
+  category?: string;
+  urgent?: boolean;
+  title?: string;
+  description?: string;
+  total?: number;
+  completed?: number;
+  tasks?: FeaturedPreviewSubtask[];
+  status?: string;
+  opponent?: string;
+  stakeXP?: number;
+  timeLeft?: string;
+  xpChange?: number;
+  name?: string;
+  memberCount?: number;
+  topPlayer?: string;
+  topXP?: number;
+}
 
 interface FeaturedPreviewProps {
   type: "task" | "duel" | "guild" | "stat";
-  data: any;
+  data: Record<string, unknown>;
   onClose: () => void;
 }
 
 export default function FeaturedPreview({ type, data, onClose }: FeaturedPreviewProps) {
   if (!data) return null;
+
+  const d = data as FeaturedPreviewData;
 
   return (
     <AnimatePresence>
@@ -41,30 +67,30 @@ export default function FeaturedPreview({ type, data, onClose }: FeaturedPreview
           <div className="p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[9px] font-[family-name:var(--font-mono)] text-[#00d4ff] uppercase tracking-widest px-2 py-0.5 rounded-full border border-[#00d4ff]/20 bg-[#00d4ff]/5">
-                {data.category ?? "TASK"}
+                {d.category ?? "TASK"}
               </span>
-              {data.urgent && (
+              {d.urgent && (
                 <span className="text-[9px] font-[family-name:var(--font-mono)] text-orange-400 uppercase tracking-widest px-2 py-0.5 rounded-full border border-orange-400/20 bg-orange-400/5">
                   URGENT
                 </span>
               )}
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">{data.title}</h3>
-            <p className="text-xs text-gray-500 mb-4 line-clamp-2">{data.description ?? "No description available."}</p>
+            <h3 className="text-lg font-bold text-white mb-2">{d.title}</h3>
+            <p className="text-xs text-gray-500 mb-4 line-clamp-2">{d.description ?? "No description available."}</p>
 
             {/* Progress */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] text-gray-500 font-[family-name:var(--font-mono)]">Progress</span>
                 <span className="text-[10px] text-[#00d4ff] font-[family-name:var(--font-mono)]">
-                  {data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0}%
+                  {(d.total ?? 0) > 0 ? Math.round(((d.completed ?? 0) / (d.total ?? 1)) * 100) : 0}%
                 </span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${data.total > 0 ? (data.completed / data.total) * 100 : 0}%`,
+                    width: `${(d.total ?? 0) > 0 ? ((d.completed ?? 0) / (d.total ?? 1)) * 100 : 0}%`,
                     background: "linear-gradient(90deg, #00d4ff, #3b82f6)",
                   }}
                 />
@@ -72,9 +98,9 @@ export default function FeaturedPreview({ type, data, onClose }: FeaturedPreview
             </div>
 
             {/* Tasks list */}
-            {data.tasks && data.tasks.length > 0 && (
+            {d.tasks && d.tasks.length > 0 && (
               <div className="space-y-1.5">
-                {data.tasks.slice(0, 3).map((task: any, i: number) => (
+                {d.tasks.slice(0, 3).map((task: FeaturedPreviewSubtask, i: number) => (
                   <div key={i} className="flex items-center gap-2">
                     {task.done ? (
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
@@ -96,28 +122,28 @@ export default function FeaturedPreview({ type, data, onClose }: FeaturedPreview
             <div className="flex items-center gap-2 mb-3">
               <Swords className="h-4 w-4 text-[#00d4ff]" />
               <span className="text-[9px] font-[family-name:var(--font-mono)] text-[#00d4ff] uppercase tracking-widest">
-                {data.status === "active" ? "IN PROGRESS" : data.status === "won" ? "VICTORY" : data.status === "lost" ? "DEFEAT" : "PENDING"}
+                {d.status === "active" ? "IN PROGRESS" : d.status === "won" ? "VICTORY" : d.status === "lost" ? "DEFEAT" : "PENDING"}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">vs {data.opponent}</h3>
-            <p className="text-xs text-gray-500 mb-4">{data.description ?? "Compete for XP."}</p>
+            <h3 className="text-lg font-bold text-white mb-1">vs {d.opponent}</h3>
+            <p className="text-xs text-gray-500 mb-4">{d.description ?? "Compete for XP."}</p>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-white/[0.03] p-3">
                 <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] uppercase mb-1">Stake</p>
-                <p className="text-sm text-white font-semibold font-[family-name:var(--font-mono)]">{data.stakeXP} XP</p>
+                <p className="text-sm text-white font-semibold font-[family-name:var(--font-mono)]">{d.stakeXP} XP</p>
               </div>
-              {data.timeLeft && (
+              {d.timeLeft && (
                 <div className="rounded-lg bg-white/[0.03] p-3">
                   <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] uppercase mb-1">Time Left</p>
-                  <p className="text-sm text-white font-semibold font-[family-name:var(--font-mono)]">{data.timeLeft}</p>
+                  <p className="text-sm text-white font-semibold font-[family-name:var(--font-mono)]">{d.timeLeft}</p>
                 </div>
               )}
-              {data.xpChange !== undefined && (
+              {d.xpChange !== undefined && (
                 <div className="rounded-lg bg-white/[0.03] p-3">
                   <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] uppercase mb-1">XP Change</p>
-                  <p className={`text-sm font-semibold font-[family-name:var(--font-mono)] ${data.xpChange > 0 ? "text-emerald-400" : "text-red-400"}`}>
-                    {data.xpChange > 0 ? "+" : ""}{data.xpChange}
+                  <p className={`text-sm font-semibold font-[family-name:var(--font-mono)] ${(d.xpChange ?? 0) > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    {(d.xpChange ?? 0) > 0 ? "+" : ""}{d.xpChange}
                   </p>
                 </div>
               )}
@@ -133,14 +159,14 @@ export default function FeaturedPreview({ type, data, onClose }: FeaturedPreview
                 GUILD DETAILS
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">{data.name}</h3>
-            <p className="text-xs text-gray-500 mb-4">{data.memberCount} members · {data.description ?? "A competitive guild."}</p>
+            <h3 className="text-lg font-bold text-white mb-1">{d.name}</h3>
+            <p className="text-xs text-gray-500 mb-4">{d.memberCount} members · {d.description ?? "A competitive guild."}</p>
 
-            {data.topPlayer && (
+            {d.topPlayer && (
               <div className="rounded-lg bg-white/[0.03] p-3">
                 <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] uppercase mb-1">Top Player</p>
-                <p className="text-sm text-white font-semibold">{data.topPlayer}</p>
-                <p className="text-[10px] text-yellow-400 font-[family-name:var(--font-mono)]">{data.topXP?.toLocaleString()} XP</p>
+                <p className="text-sm text-white font-semibold">{d.topPlayer}</p>
+                <p className="text-[10px] text-yellow-400 font-[family-name:var(--font-mono)]">{d.topXP?.toLocaleString()} XP</p>
               </div>
             )}
           </div>

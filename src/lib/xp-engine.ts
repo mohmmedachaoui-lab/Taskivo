@@ -11,16 +11,6 @@ const MISSED_TASK_PENALTY_RATE = 0.10;
 const MISSED_TASK_MIN_PENALTY = 25;
 const MISSED_TASK_MAX_PENALTY = 200;
 
-export function calculateXP(
-  difficulty: Task["difficulty"],
-  currentLevel: number
-): { xp: number; isPenalty: boolean } {
-  return {
-    xp: 0,
-    isPenalty: false,
-  };
-}
-
 export function calculateWinXP(
   difficulty: Task["difficulty"],
   currentLevel: number

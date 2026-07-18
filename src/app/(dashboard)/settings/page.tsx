@@ -1,15 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel, getRankTitle, calculateXPProgress } from "@/lib/xp-engine";
 import LevelRing from "@/components/gamification/LevelRing";
 import {
-  Settings as SettingsIcon,
   Globe,
   Bell,
   Shield,
@@ -23,7 +20,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
-  const { profile, stats } = useAppStore();
+  const { profile } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
   const level = profile ? calculateLevel(profile.totalXP) : 1;
@@ -94,7 +91,7 @@ export default function SettingsPage() {
             {section.title}
           </h3>
           <Card className="divide-y divide-gray-100 dark:divide-gray-800 p-0">
-            {section.items.map((item, i) => (
+            {section.items.map((item) => (
               <div
                 key={item.label}
                 className="flex items-center gap-4 px-6 py-4"

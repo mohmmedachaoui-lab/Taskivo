@@ -24,6 +24,7 @@ import {
   UserCheck,
   Mail,
 } from "lucide-react";
+import { FriendRequest } from "@/types";
 
 interface FriendProfile {
   uid: string;
@@ -41,7 +42,7 @@ export default function FriendsPage() {
     { uid: string; callsign: string; photoURL: string | null; level: number }[]
   >([]);
   const [friends, setFriends] = useState<FriendProfile[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 

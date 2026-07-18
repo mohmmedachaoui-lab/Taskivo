@@ -212,7 +212,7 @@ export default function FocusTimer() {
           { icon: Flame, value: sessions, label: "SESSIONS", color: "text-[#00d4ff]" },
           { icon: Trophy, value: `${sessions * 25}m`, label: "FOCUS TIME", color: "text-emerald-400" },
           { icon: Zap, value: `+${totalXP}`, label: "XP EARNED", color: "text-yellow-400" },
-        ].map((stat, i) => (
+        ].map((stat) => (
           <div key={stat.label} className="glass neon-border rounded-xl text-center p-4">
             <stat.icon className={`h-4 w-4 ${stat.color} mx-auto mb-2`} />
             <p className="text-xl font-bold text-white font-[family-name:var(--font-mono)]">{stat.value}</p>

@@ -6,10 +6,10 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
+import { useCurrentTime } from "@/hooks/useCurrentTime";
 import {
   calculateWinXP,
   calculateMissedTaskPenalty,
-  getRankTitle,
   calculateLevel,
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
@@ -55,6 +55,7 @@ export default function TasksPage() {
   const [newDiff, setNewDiff] = useState<Difficulty>("medium");
   const [deadlineDays, setDeadlineDays] = useState<number>(0);
   const [penaltyFlash, setPenaltyFlash] = useState<string | null>(null);
+  const now = useCurrentTime(60000);
 
   const checkDeadlines = useCallback(() => {
     const now = Date.now();
@@ -82,7 +83,7 @@ export default function TasksPage() {
   const addTask = () => {
     if (!newTitle.trim()) return;
     const xp = calculateWinXP(newDiff, level);
-    const deadline = deadlineDays > 0 ? Date.now() + deadlineDays * 24 * 60 * 60 * 1000 : null;
+    const deadline = deadlineDays > 0 ? now + deadlineDays * 24 * 60 * 60 * 1000 : null;
     setTasks((prev) => [
       ...prev,
       {
@@ -122,7 +123,7 @@ export default function TasksPage() {
   };
 
   const getTimeRemaining = (deadline: number) => {
-    const diff = deadline - Date.now();
+    const diff = deadline - now;
     if (diff <= 0) return "Expired";
     const days = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
@@ -248,11 +249,11 @@ export default function TasksPage() {
                       <p className="font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
                       {task.deadline && (
                         <p className={`text-xs flex items-center gap-1 mt-0.5 ${
-                          task.deadline - Date.now() < 3600000 ? "text-red-400" : "text-gray-500"
+                          task.deadline - now < 3600000 ? "text-red-400" : "text-gray-500"
                         }`}>
                           <Clock className="h-3 w-3" />
                           {getTimeRemaining(task.deadline)}
-                          {task.deadline - Date.now() < 3600000 && " — Due soon!"}
+                          {task.deadline - now < 3600000 && " — Due soon!"}
                         </p>
                       )}
                     </div>

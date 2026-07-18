@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Brain, Check, X, AlertTriangle } from "lucide-react";
 import Button from "@/components/ui/Button";
 

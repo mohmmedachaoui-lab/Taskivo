@@ -5,21 +5,17 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
   limit,
   increment,
-  serverTimestamp,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import {
   Duel,
   FriendRequest,
-  Friendship,
   Guild,
-  GuildMember,
   GuildNews,
   Notification,
   ActivityFeedItem,

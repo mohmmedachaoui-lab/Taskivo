@@ -3,11 +3,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
-import { calculateXPProgress, getRankTitle, calculateLevel } from "@/lib/xp-engine";
+import { calculateLevel } from "@/lib/xp-engine";
 import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
 import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
 import { useFriends } from "@/hooks/useFriends";
+import { useCurrentTime } from "@/hooks/useCurrentTime";
 import { getUserGuild, getGuildMembers } from "@/lib/social";
 import BentoCard from "@/components/ui/BentoCard";
 import PulsingStatCard from "@/components/ui/PulsingStatCard";
@@ -25,13 +26,10 @@ import {
   TrendingUp,
   Activity,
   Target,
-  Shield,
   Users,
-  Clock,
-  AlertTriangle,
-  ChevronRight,
 } from "lucide-react";
-import { Guild } from "@/types";
+import { Guild, Duel } from "@/types";
+import { RealtimeTask } from "@/hooks/useRealtimeTasks";
 
 const FEED_ICONS: Record<string, typeof Activity> = {
   task_completed: CheckCircle2,
@@ -56,7 +54,7 @@ const FEED_COLORS: Record<string, string> = {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { profile, stats } = useAppStore();
-  const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: any } | null>(null);
+  const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: RealtimeTask | Duel | Guild } | null>(null);
   const [taskBurst, setTaskBurst] = useState<string | null>(null);
 
   // Real-time data
@@ -90,18 +88,16 @@ export default function DashboardPage() {
   }, [loadGuild]);
 
   const level = profile ? calculateLevel(profile.totalXP) : 1;
-  const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
-  const rank = getRankTitle(level);
   const tasksDone = stats?.tasksCompleted ?? 0;
   const dayStreak = stats?.currentStreak ?? 0;
   const totalXP = profile?.totalXP ?? 0;
-  const xpLost = (stats as any)?.xpLost ?? 0;
 
   const allDuels = [...activeDuels, ...pendingDuels];
   const activeTasks = tasks.filter((t) => t.completed < t.total);
+  const now = useCurrentTime(60000);
 
   const getRelativeTime = (ts: number) => {
-    const diff = Date.now() - ts;
+    const diff = now - ts;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return "now";
     if (mins < 60) return `${mins}m`;
@@ -232,8 +228,8 @@ export default function DashboardPage() {
                   const isChallenger = duel.challengerId === user?.uid;
                   const opponent = isChallenger ? duel.opponentName : duel.challengerName;
                   const isActive = duel.status === "active";
-                  const timeLeft = duel.endTime > Date.now()
-                    ? `${Math.floor((duel.endTime - Date.now()) / 3600000)}h left`
+                  const timeLeft = duel.endTime > now
+                    ? `${Math.floor((duel.endTime - now) / 3600000)}h left`
                     : "Expired";
                   return (
                     <div
@@ -358,7 +354,7 @@ export default function DashboardPage() {
       {preview && (
         <FeaturedPreview
           type={preview.type}
-          data={preview.data}
+          data={preview.data as unknown as Record<string, unknown>}
           onClose={() => setPreview(null)}
         />
       )}

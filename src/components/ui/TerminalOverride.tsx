@@ -14,7 +14,6 @@ export default function TerminalOverride() {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [overloadActive, setOverloadActive] = useState(false);
-  const [overrideComplete, setOverrideComplete] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -62,7 +61,6 @@ export default function TerminalOverride() {
       await new Promise((r) => setTimeout(r, 500));
 
       setOverloadActive(false);
-      setOverrideComplete(true);
 
       if (user && profile) {
         try {
@@ -94,7 +92,6 @@ export default function TerminalOverride() {
       ]);
 
       setTimeout(() => {
-        setOverrideComplete(false);
         setIsOpen(false);
         setInput("");
       }, 3000);
@@ -196,7 +193,7 @@ export default function TerminalOverride() {
                   <span className="text-[#00d4ff]">TASKIVO</span> Terminal Override Interface
                 </div>
                 <div className="text-gray-700 mb-3 text-[10px]">
-                  Press Ctrl+Shift+X to toggle. Type 'help' for commands.
+                   Press Ctrl+Shift+X to toggle. Type &apos;help&apos; for commands.
                 </div>
                 {history.map((line, i) => (
                   <div

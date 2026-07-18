@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronDown, Zap } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import GoogleSignIn from "@/components/auth/GoogleSignIn";
 import MagneticButton from "./MagneticButton";
 

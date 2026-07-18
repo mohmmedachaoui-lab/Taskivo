@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useCurrentTime } from "@/hooks/useCurrentTime";
 import { Bell, Swords, UserPlus, Trophy, Check, Zap, AlertTriangle } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -37,9 +38,10 @@ export default function Notifications() {
   const { user } = useAuth();
   const { notifications, unreadCount, markRead, markAllRead } = useRealtimeNotifications(user?.uid);
   const [showPanel, setShowPanel] = useState(false);
+  const now = useCurrentTime(60000);
 
   const timeAgo = (ts: number) => {
-    const diff = Date.now() - ts;
+    const diff = now - ts;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return "now";
     if (mins < 60) return `${mins}m`;

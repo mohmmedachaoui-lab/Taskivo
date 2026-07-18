@@ -24,9 +24,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  Users,
   Gamepad2,
-  Brain,
 } from "lucide-react";
 
 const navItems = [

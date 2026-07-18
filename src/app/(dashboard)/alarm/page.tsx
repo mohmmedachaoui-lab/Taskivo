@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import MathChallenge from "@/components/ui/MathChallenge";
-import { AlarmClock, Plus, Trash2, Clock, Volume2, Settings2 } from "lucide-react";
+import { AlarmClock, Plus, Trash2, Clock, Settings2 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -19,12 +19,6 @@ interface Alarm {
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-const ALARM_SOUNDS = [
-  { id: "gentle", label: "Gentle Chime", url: "" },
-  { id: "urgent", label: "Urgent Alert", url: "" },
-  { id: "nature", label: "Nature Ambience", url: "" },
-];
 
 export default function AlarmPage() {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
@@ -103,10 +97,6 @@ export default function AlarmPage() {
     }
     setShowChallenge(false);
     setActiveAlarm(null);
-  };
-
-  const toggleDay = (day: string) => {
-    // This is used when adding new alarms
   };
 
   return (

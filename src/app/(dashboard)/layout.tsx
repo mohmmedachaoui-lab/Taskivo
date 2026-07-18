@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { useAppStore } from "@/store";
+import { UserProfile, UserStats } from "@/types";
 import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import FloatingActions from "@/components/ui/FloatingActions";
@@ -43,11 +44,11 @@ export default function DashboardLayout({
             router.push("/onboarding");
             return;
           }
-          setProfile(data as any);
+          setProfile(data as UserProfile);
         }
 
         if (statsSnap.exists()) {
-          setStats(statsSnap.data() as any);
+          setStats(statsSnap.data() as UserStats);
         }
 
         setDataLoaded(true);

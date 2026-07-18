@@ -1,12 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 interface TaskShelfCardProps {
   title: string;
   category: string;
-  progress: number;
   total: number;
   completed: number;
   urgent?: boolean;
@@ -16,7 +15,6 @@ interface TaskShelfCardProps {
 export default function TaskShelfCard({
   title,
   category,
-  progress,
   total,
   completed,
   urgent,

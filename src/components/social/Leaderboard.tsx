@@ -74,8 +74,11 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
   }, [user, friendUids]);
 
   useEffect(() => {
-    if (mode === "global") loadGlobal();
-    else loadFriends();
+    if (mode === "global") {
+      void loadGlobal();
+    } else {
+      void loadFriends();
+    }
   }, [mode, loadGlobal, loadFriends]);
 
   const getRankStyle = (rank: number) => {

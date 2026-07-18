@@ -6,7 +6,6 @@ import LevelRing from "@/components/gamification/LevelRing";
 import { useAppStore } from "@/store";
 import { calculateLevel, calculateXPProgress, getRankTitle } from "@/lib/xp-engine";
 import {
-  BarChart3,
   TrendingUp,
   Flame,
   CheckCircle,

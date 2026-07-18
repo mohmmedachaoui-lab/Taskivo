@@ -29,7 +29,6 @@ import {
   Newspaper,
   ChevronDown,
   ChevronUp,
-  Shield,
 } from "lucide-react";
 
 export default function GuildsPage() {

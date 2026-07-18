@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Swords, Clock, Trophy, Zap } from "lucide-react";
+import { Swords, Clock, Zap } from "lucide-react";
 
 interface DuelShelfCardProps {
   opponent: string;

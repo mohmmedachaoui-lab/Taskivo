@@ -3,7 +3,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
 import GoogleSignIn from "@/components/auth/GoogleSignIn";
 import ParticleBackground from "@/components/landing/ParticleBackground";

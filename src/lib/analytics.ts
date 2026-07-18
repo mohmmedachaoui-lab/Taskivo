@@ -1,5 +1,5 @@
 import { UserStats, UserProfile, ActivityFeedItem, Duel } from "@/types";
-import { calculateLevel, getRankTitle } from "@/lib/xp-engine";
+import { calculateLevel } from "@/lib/xp-engine";
 
 export interface ProductivityInsight {
   score: number;
@@ -41,7 +41,7 @@ export function calculateProductivityScore(
   const tasksFailed = stats.tasksFailed ?? 0;
   const streak = stats.currentStreak ?? 0;
   const longestStreak = stats.longestStreak ?? 0;
-  const duelsWon = (stats as any).duelsWon ?? 0;
+  const duelsWon = stats.duelsWon ?? 0;
   const focusHours = stats.focusHours ?? 0;
 
   // Component scores (0-100 each)

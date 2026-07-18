@@ -7,7 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { Terminal, ArrowRight, User } from "lucide-react";
+import { Terminal, ArrowRight } from "lucide-react";
 
 export default function OnboardingPage() {
   const { user, loading } = useAuth();
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
       });
 
       router.push("/dashboard");
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
       setSaving(false);
     }

@@ -26,7 +26,7 @@ export default function AchievementsPage() {
   const currentStreak = stats?.currentStreak ?? 0;
   const level = profile?.level ?? 1;
   const totalXP = profile?.totalXP ?? 0;
-  const duelsWon = (stats as any)?.duelsWon ?? 0;
+  const duelsWon = stats?.duelsWon ?? 0;
 
   const getProgress = (type: string, requirement: number): number => {
     switch (type) {
@@ -35,7 +35,7 @@ export default function AchievementsPage() {
       case "level": return Math.min(100, (level / requirement) * 100);
       case "xp": return Math.min(100, (totalXP / requirement) * 100);
       case "duels_won": return Math.min(100, (duelsWon / requirement) * 100);
-      case "focus_sessions": return Math.min(100, (((stats as any)?.focusSessions ?? 0) / requirement) * 100);
+      case "focus_sessions": return Math.min(100, ((stats?.focusSessions ?? 0) / requirement) * 100);
       default: return 0;
     }
   };
@@ -47,7 +47,7 @@ export default function AchievementsPage() {
       case "level": return level;
       case "xp": return totalXP;
       case "duels_won": return duelsWon;
-      case "focus_sessions": return (stats as any)?.focusSessions ?? 0;
+      case "focus_sessions": return stats?.focusSessions ?? 0;
       default: return 0;
     }
   };

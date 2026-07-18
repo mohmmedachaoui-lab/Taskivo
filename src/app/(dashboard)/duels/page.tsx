@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
+import { useCurrentTime } from "@/hooks/useCurrentTime";
 import {
   createDuel,
   acceptDuel,
@@ -19,7 +20,6 @@ import { calculateDuelStake } from "@/lib/xp-engine";
 import {
   Swords,
   Shield,
-  Crown,
   Zap,
   Clock,
   Trophy,
@@ -44,6 +44,7 @@ export default function DuelsPage() {
 
   const totalXP = profile?.totalXP ?? 0;
   const stakeXP = calculateDuelStake(totalXP, stakeMultiplier / 100);
+  const now = useCurrentTime(60000);
 
   const loadDuels = useCallback(async () => {
     if (!user) return;
@@ -95,7 +96,7 @@ export default function DuelsPage() {
   };
 
   const getTimeLeft = (endTime: number) => {
-    const diff = Math.max(0, endTime - Date.now());
+    const diff = Math.max(0, endTime - now);
     const hours = Math.floor(diff / 3600000);
     const mins = Math.floor((diff % 3600000) / 60000);
     if (hours > 0) return `${hours}h ${mins}m`;
@@ -259,7 +260,7 @@ export default function DuelsPage() {
                       </div>
                       <span className="text-xs text-gray-400 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {duel.endTime > Date.now() ? getTimeLeft(duel.endTime) : "Ended"}
+                        {duel.endTime > now ? getTimeLeft(duel.endTime) : "Ended"}
                       </span>
                     </div>
 

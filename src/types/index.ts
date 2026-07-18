@@ -24,6 +24,8 @@ export interface UserStats {
   achievements: string[];
   focusHours: number;
   xpLost: number;
+  duelsWon: number;
+  focusSessions: number;
 }
 
 export interface Task {
@@ -116,7 +118,7 @@ export interface Notification {
   message: string;
   read: boolean;
   createdAt: number;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export interface ActivityFeedItem {

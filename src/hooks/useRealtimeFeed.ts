@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { collection, query, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { ActivityFeedItem } from "@/types";
@@ -8,6 +8,8 @@ import { ActivityFeedItem } from "@/types";
 export function useRealtimeFeed(uid: string | undefined, friendUids: string[]) {
   const [feed, setFeed] = useState<ActivityFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const friendUidsKey = useMemo(() => friendUids.join(","), [friendUids]);
 
   useEffect(() => {
     if (!uid) {
@@ -18,7 +20,8 @@ export function useRealtimeFeed(uid: string | undefined, friendUids: string[]) {
 
     setLoading(true);
     const db = getFirebaseDb();
-    const allUids = [uid, ...friendUids].slice(0, 10); // Firestore `in` limit
+    const parsed = friendUidsKey ? friendUidsKey.split(",") : [];
+    const allUids = [uid, ...parsed].slice(0, 10);
 
     if (allUids.length === 0) {
       setFeed([]);
@@ -43,7 +46,7 @@ export function useRealtimeFeed(uid: string | undefined, friendUids: string[]) {
     });
 
     return () => unsub();
-  }, [uid, friendUids.join(",")]);
+  }, [uid, friendUidsKey]);
 
   return { feed, loading };
 }
