@@ -22,6 +22,7 @@ export interface UserStats {
   guildId: string | null;
   achievements: string[];
   focusHours: number;
+  xpLost: number;
 }
 
 export interface Task {
@@ -31,6 +32,7 @@ export interface Task {
   difficulty: "easy" | "medium" | "hard" | "extreme";
   completed: boolean;
   penalty: boolean;
+  deadline: number | null;
   createdAt: number;
   completedAt: number | null;
   xpAwarded: number;
@@ -48,13 +50,28 @@ export interface Guild {
   icon: string;
 }
 
+export interface GuildMember {
+  uid: string;
+  callsign: string;
+  role: "owner" | "officer" | "member";
+  joinedAt: number;
+}
+
+export interface GuildNews {
+  id: string;
+  guildId: string;
+  message: string;
+  type: "join" | "leave" | "kick" | "promote" | "achievement" | "milestone";
+  createdAt: number;
+}
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
   icon: string;
   requirement: number;
-  type: "tasks_completed" | "streak" | "level" | "xp";
+  type: "tasks_completed" | "streak" | "level" | "xp" | "duels_won" | "focus_sessions";
 }
 
 export interface Duel {
@@ -70,6 +87,7 @@ export interface Duel {
   startTime: number | null;
   endTime: number;
   createdAt: number;
+  stakeXP: number;
 }
 
 export interface FriendRequest {
@@ -92,12 +110,22 @@ export interface Friendship {
 export interface Notification {
   id: string;
   uid: string;
-  type: "duel_request" | "duel_won" | "duel_lost" | "friend_request" | "friend_accepted" | "guild_invite";
+  type: "duel_request" | "duel_won" | "duel_lost" | "friend_request" | "friend_accepted" | "guild_invite" | "achievement_unlocked" | "xp_penalty" | "stake_won" | "stake_lost";
   title: string;
   message: string;
   read: boolean;
   createdAt: number;
   data?: Record<string, any>;
+}
+
+export interface ActivityFeedItem {
+  id: string;
+  uid: string;
+  callsign: string;
+  type: "task_completed" | "duel_won" | "duel_lost" | "achievement" | "level_up" | "streak" | "guild_join";
+  message: string;
+  xpChange: number;
+  createdAt: number;
 }
 
 export type Theme = "light" | "dark";

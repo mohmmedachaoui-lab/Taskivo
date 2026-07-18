@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 
 interface SummaryCardProps {
   title: string;
@@ -10,6 +10,7 @@ interface SummaryCardProps {
   icon: React.ReactNode;
   color?: string;
   glow?: string;
+  penalty?: number;
 }
 
 export default function SummaryCard({
@@ -19,6 +20,7 @@ export default function SummaryCard({
   icon,
   color = "from-[#00d4ff] to-[#00a8cc]",
   glow = "shadow-[#00d4ff]/20",
+  penalty,
 }: SummaryCardProps) {
   const isPositive = trend && trend > 0;
 
@@ -46,6 +48,12 @@ export default function SummaryCard({
               )}
               {isPositive ? "+" : ""}
               {trend}%
+            </div>
+          )}
+          {penalty !== undefined && penalty > 0 && (
+            <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400">
+              <AlertTriangle className="h-3 w-3" />
+              -{penalty.toLocaleString()} XP lost
             </div>
           )}
         </div>
