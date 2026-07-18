@@ -4,7 +4,7 @@ import { useRef, useState, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
 
-type BentoVariant = "cyan" | "yellow" | "purple" | "neutral";
+type BentoVariant = "cyan" | "yellow" | "purple" | "red" | "neutral";
 
 interface BentoCardProps {
   children: ReactNode;
@@ -20,6 +20,7 @@ const VARIANT_CLASSES: Record<BentoVariant, string> = {
   cyan: "bento-cyan",
   yellow: "bento-yellow",
   purple: "bento-purple",
+  red: "bento-red",
   neutral: "bento-neutral",
 };
 
@@ -41,8 +42,8 @@ export default function BentoCard({
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     setTilt({
-      x: (y - 0.5) * -8,
-      y: (x - 0.5) * 8,
+      x: (y - 0.5) * -6,
+      y: (x - 0.5) * 6,
     });
   };
 
@@ -51,7 +52,7 @@ export default function BentoCard({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
       onMouseMove={handleMouse}

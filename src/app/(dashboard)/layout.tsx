@@ -76,7 +76,7 @@ export default function DashboardLayout({
 
   if (loading || !authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#020817" }}>
+      <div className="min-h-screen flex items-center justify-center starfield" style={{ background: "#050508" }}>
         <div className="flex flex-col items-center gap-5">
           {/* Orbital ring */}
           <div className="relative h-16 w-16">
@@ -129,7 +129,7 @@ export default function DashboardLayout({
   return (
     <DarkModeV2Provider>
       <DeepModeProvider>
-        <div className="min-h-screen cyber-grid overflow-x-hidden" style={{ background: "#020817" }}>
+        <div className="min-h-screen cyber-grid starfield overflow-x-hidden" style={{ background: "#050508" }}>
           <Sidebar />
           <BottomNav />
           <FloatingActions />

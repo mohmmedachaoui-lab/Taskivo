@@ -69,41 +69,56 @@ export default function GoalBentoCard() {
   return (
     <div className="p-4 h-full flex flex-col relative">
       <div className="flex items-center gap-2 mb-3">
-        <Target className="h-4 w-4 text-[#00d4ff]" strokeWidth={2.5} />
-        <h3 className="text-[11px] font-semibold text-[#00d4ff]/80 font-[family-name:var(--font-mono)] uppercase tracking-[0.15em]">
+        <div
+          className="h-7 w-7 rounded-lg flex items-center justify-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 212, 255, 0.03))",
+            border: "1px solid rgba(0, 212, 255, 0.1)",
+          }}
+        >
+          <Target className="h-3.5 w-3.5 text-[#00d4ff]" style={{ filter: "drop-shadow(0 0 3px rgba(0, 212, 255, 0.4))" }} strokeWidth={2.5} />
+        </div>
+        <h3 className="text-[11px] font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-[0.15em]">
           Weekly Mission
         </h3>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-3">
         <div className="relative w-12 h-12">
-          <svg
-            className="w-12 h-12 -rotate-90"
-            viewBox="0 0 40 40"
-          >
+          {/* Glow behind ring */}
+          <div
+            className="absolute inset-0 rounded-full glow-ring-pulse pointer-events-none"
+            style={{
+              background: "radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%)",
+            }}
+          />
+          <svg className="w-12 h-12 -rotate-90 relative z-10" viewBox="0 0 40 40">
             <circle
-              cx="20"
-              cy="20"
-              r="18"
+              cx="20" cy="20" r="18"
               fill="none"
-              stroke="rgba(0, 212, 255, 0.08)"
+              stroke="rgba(0, 212, 255, 0.06)"
               strokeWidth="3"
             />
             <motion.circle
-              cx="20"
-              cy="20"
-              r="18"
+              cx="20" cy="20" r="18"
               fill="none"
-              stroke="#00d4ff"
+              stroke="url(#goalGrad)"
               strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={circumference}
               initial={{ strokeDashoffset: circumference }}
               animate={{ strokeDashoffset }}
               transition={{ duration: 1, ease: "easeOut" }}
+              style={{ filter: "drop-shadow(0 0 4px rgba(0, 212, 255, 0.4))" }}
             />
+            <defs>
+              <linearGradient id="goalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#a855f7" />
+                <stop offset="100%" stopColor="#00d4ff" />
+              </linearGradient>
+            </defs>
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center z-20">
             <span className="text-[11px] font-bold text-white font-[family-name:var(--font-mono)]">
               {progress}%
             </span>
@@ -131,14 +146,21 @@ export default function GoalBentoCard() {
         onClick={handleCompanionOpen}
         className="absolute bottom-3 right-3 h-8 w-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
         style={{
-          background: `rgba(0, 212, 255, 0.08)`,
-          border: `1px solid rgba(0, 212, 255, 0.15)`,
+          background: "rgba(0, 212, 255, 0.06)",
+          border: "1px solid rgba(0, 212, 255, 0.12)",
+          boxShadow: "0 0 8px rgba(0, 212, 255, 0.06)",
         }}
       >
         <MessageCircle className="h-4 w-4 text-[#00d4ff]" strokeWidth={2.5} />
         {activeNudges.length > 0 && (
-          <div className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#00d4ff] flex items-center justify-center">
-            <span className="text-[8px] font-bold text-black">
+          <div
+            className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #a855f7, #00d4ff)",
+              boxShadow: "0 0 6px rgba(0, 212, 255, 0.4)",
+            }}
+          >
+            <span className="text-[8px] font-bold text-white">
               {activeNudges.length}
             </span>
           </div>
@@ -154,18 +176,17 @@ export default function GoalBentoCard() {
             transition={{ duration: 0.2 }}
             className="absolute bottom-full right-0 mb-2 w-64 companion-chat rounded-xl overflow-hidden z-50"
             style={{
-              background: "rgba(5, 12, 25, 0.95)",
-              border: "1px solid rgba(0, 212, 255, 0.15)",
-              backdropFilter: "blur(16px)",
-              boxShadow:
-                "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.05)",
+              background: "rgba(5, 8, 15, 0.95)",
+              border: "1px solid rgba(0, 212, 255, 0.1)",
+              backdropFilter: "blur(20px)",
+              boxShadow: "0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(0, 212, 255, 0.04)",
             }}
           >
-            <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.04]">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.03]">
               <div className="flex items-center gap-2">
                 <div
                   className="h-2 w-2 rounded-full animate-pulse"
-                  style={{ background: status.color }}
+                  style={{ background: status.color, boxShadow: `0 0 6px ${status.color}60` }}
                 />
                 <span className="text-[10px] font-semibold text-gray-300 font-[family-name:var(--font-mono)] uppercase tracking-wider">
                   {status.label}
@@ -197,12 +218,12 @@ export default function GoalBentoCard() {
                     style={{
                       background:
                         nudge.priority === "high"
-                          ? "rgba(0, 212, 255, 0.06)"
-                          : "rgba(255, 255, 255, 0.02)",
+                          ? "rgba(0, 212, 255, 0.04)"
+                          : "rgba(255, 255, 255, 0.015)",
                       border: `1px solid ${
                         nudge.priority === "high"
-                          ? "rgba(0, 212, 255, 0.1)"
-                          : "rgba(255, 255, 255, 0.03)"
+                          ? "rgba(0, 212, 255, 0.08)"
+                          : "rgba(255, 255, 255, 0.025)"
                       }`,
                     }}
                   >
@@ -223,7 +244,7 @@ export default function GoalBentoCard() {
               )}
             </div>
 
-            <div className="px-3 py-2 border-t border-white/[0.04]">
+            <div className="px-3 py-2 border-t border-white/[0.03]">
               <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] text-center">
                 {companion.sessionsToday} sessions today ·{" "}
                 {companion.totalFocusMinutes}m total

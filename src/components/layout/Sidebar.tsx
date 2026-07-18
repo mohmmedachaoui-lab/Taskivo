@@ -28,16 +28,16 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/alarm", label: "Alarm", icon: AlarmClock },
-  { href: "/duels", label: "Duels", icon: Swords },
-  { href: "/focus", label: "Focus", icon: Timer },
-  { href: "/stats", label: "Stats", icon: BarChart3 },
-  { href: "/achievements", label: "Badges", icon: Trophy },
-  { href: "/friends", label: "Social", icon: Sparkles },
-  { href: "/guilds", label: "Guilds", icon: Gamepad2 },
-  { href: "/settings", label: "System", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, accent: "#00d4ff" },
+  { href: "/tasks", label: "Tasks", icon: CheckSquare, accent: "#facc15" },
+  { href: "/alarm", label: "Alarm", icon: AlarmClock, accent: "#f97316" },
+  { href: "/duels", label: "Duels", icon: Swords, accent: "#ef4444" },
+  { href: "/focus", label: "Focus", icon: Timer, accent: "#3b82f6" },
+  { href: "/stats", label: "Stats", icon: BarChart3, accent: "#00d4ff" },
+  { href: "/achievements", label: "Badges", icon: Trophy, accent: "#facc15" },
+  { href: "/friends", label: "Social", icon: Sparkles, accent: "#a855f7" },
+  { href: "/guilds", label: "Guilds", icon: Gamepad2, accent: "#a855f7" },
+  { href: "/settings", label: "System", icon: Settings, accent: "#6b7280" },
 ];
 
 export default function Sidebar() {
@@ -59,21 +59,22 @@ export default function Sidebar() {
         collapsed ? "w-[68px]" : "w-60"
       )}
       style={{
-        background: "rgba(2, 8, 23, 0.95)",
-        backdropFilter: "blur(20px)",
-        borderRight: "1px solid rgba(0, 212, 255, 0.1)",
+        background: "rgba(5, 5, 8, 0.92)",
+        backdropFilter: "blur(24px) saturate(1.2)",
+        borderRight: "1px solid rgba(0, 212, 255, 0.06)",
       }}
     >
       {/* Neon edge line */}
-      <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4ff]/30 to-transparent" />
+      <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4ff]/20 to-transparent" />
 
       {/* Logo */}
-      <div className={clsx("flex items-center border-b border-[#00d4ff]/10", collapsed ? "justify-center p-4" : "gap-3 px-5 py-5")}>
-        <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#00d4ff] to-blue-600 flex items-center justify-center shadow-lg shadow-[#00d4ff]/20 flex-shrink-0">
-          <Zap className="h-5 w-5 text-white" />
+      <div className={clsx("flex items-center border-b border-white/[0.04]", collapsed ? "justify-center p-4" : "gap-3 px-5 py-5")}>
+        <div className="relative h-9 w-9 rounded-lg bg-gradient-to-br from-[#a855f7] via-[#3b82f6] to-[#00d4ff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#00d4ff]/15">
+          <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[#a855f7] via-[#3b82f6] to-[#00d4ff] opacity-40 blur-md -z-10" />
         </div>
         {!collapsed && (
-          <span className="text-lg font-bold tracking-tight glow-neon-text text-[#00d4ff] font-[family-name:var(--font-mono)]">
+          <span className="text-lg font-bold tracking-tight gradient-text-cyber font-[family-name:var(--font-mono)]">
             TASKIVO
           </span>
         )}
@@ -81,20 +82,25 @@ export default function Sidebar() {
 
       {/* Profile */}
       {profile && !collapsed && (
-        <div className="px-4 py-3 border-b border-[#00d4ff]/10">
+        <div className="px-4 py-3 border-b border-white/[0.04]">
           <div className="flex items-center gap-2.5">
             {profile.photoURL ? (
-              <img src={profile.photoURL} alt={profile.callsign} className="h-8 w-8 rounded-lg ring-1 ring-[#00d4ff]/30" />
+              <div className="relative">
+                <img src={profile.photoURL} alt={profile.callsign} className="h-8 w-8 rounded-lg ring-1 ring-[#00d4ff]/20" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#10b981] border-2 border-[#050508]" />
+              </div>
             ) : (
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#00d4ff] to-blue-600 flex items-center justify-center ring-1 ring-[#00d4ff]/30">
+              <div className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-[#a855f7] to-[#00d4ff] flex items-center justify-center ring-1 ring-[#00d4ff]/20">
                 <span className="text-white font-semibold text-xs">{profile.callsign[0].toUpperCase()}</span>
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#10b981] border-2 border-[#050508]" />
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-white truncate">{profile.callsign}</p>
-              <p className="text-[10px] text-[#00d4ff] font-[family-name:var(--font-mono)]">
+              <span className="badge badge-info" style={{ padding: "1px 6px", fontSize: "8px" }}>
+                <span className="badge-dot" />
                 {profile.rank} · L{profile.level}
-              </p>
+              </span>
             </div>
           </div>
         </div>
@@ -113,19 +119,31 @@ export default function Sidebar() {
                 "flex items-center gap-2.5 rounded-lg text-xs font-medium transition-all duration-200",
                 collapsed ? "justify-center p-2.5" : "px-3 py-2",
                 isActive
-                  ? "bg-[#00d4ff]/10 text-[#00d4ff] neon-border-active"
-                  : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.03]"
+                  ? "text-white"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]"
               )}
+              style={isActive ? {
+                background: `rgba(${item.accent === "#00d4ff" ? "0,212,255" : item.accent === "#facc15" ? "250,204,21" : item.accent === "#f97316" ? "249,115,22" : item.accent === "#ef4444" ? "239,68,68" : item.accent === "#3b82f6" ? "59,130,246" : item.accent === "#a855f7" ? "168,85,247" : "107,114,128"}, 0.08)`,
+                boxShadow: `inset 0 0 12px rgba(${item.accent === "#00d4ff" ? "0,212,255" : item.accent === "#facc15" ? "250,204,21" : item.accent === "#f97316" ? "249,115,22" : item.accent === "#ef4444" ? "239,68,68" : item.accent === "#3b82f6" ? "59,130,246" : item.accent === "#a855f7" ? "168,85,247" : "107,114,128"}, 0.06)`,
+                borderLeft: `2px solid ${item.accent}`,
+              } : undefined}
             >
-              <item.icon className={clsx("h-4 w-4 flex-shrink-0", isActive && "glow-neon-text")} />
-              {!collapsed && <span>{item.label}</span>}
+              <item.icon
+                className="h-4 w-4 flex-shrink-0"
+                style={isActive ? {
+                  color: item.accent,
+                  filter: `drop-shadow(0 0 6px ${item.accent}80)`,
+                } : undefined}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              {!collapsed && <span style={isActive ? { color: item.accent } : undefined}>{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom controls */}
-      <div className={clsx("p-2 border-t border-[#00d4ff]/10 space-y-1", collapsed && "flex flex-col items-center")}>
+      <div className={clsx("p-2 border-t border-white/[0.04] space-y-1", collapsed && "flex flex-col items-center")}>
         {!collapsed && (
           <div className="flex items-center justify-between px-2 py-1">
             <ThemeToggle />
@@ -135,8 +153,8 @@ export default function Sidebar() {
                 className={clsx(
                   "p-1.5 rounded-lg text-[9px] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-200",
                   isV2
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-                    : "bg-white/[0.03] text-gray-600 border border-gray-800 hover:border-gray-700"
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "bg-white/[0.02] text-gray-600 border border-white/[0.04] hover:border-white/[0.08]"
                 )}
                 title="Dark Mode V2 (Override Unlocked)"
               >
@@ -155,8 +173,8 @@ export default function Sidebar() {
                 className={clsx(
                   "p-1.5 rounded-lg text-[8px] font-[family-name:var(--font-mono)] transition-all duration-200",
                   isV2
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-                    : "bg-white/[0.03] text-gray-600 border border-gray-800"
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "bg-white/[0.02] text-gray-600 border border-white/[0.04]"
                 )}
                 title="Dark Mode V2"
               >
@@ -169,7 +187,7 @@ export default function Sidebar() {
         <button
           onClick={handleSignOut}
           className={clsx(
-            "flex items-center gap-2.5 w-full rounded-lg text-xs font-medium text-gray-600 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200",
+            "flex items-center gap-2.5 w-full rounded-lg text-xs font-medium text-gray-600 hover:text-red-400 hover:bg-red-500/[0.04] transition-all duration-200",
             collapsed ? "justify-center p-2.5" : "px-3 py-2"
           )}
         >
@@ -179,7 +197,7 @@ export default function Sidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={clsx(
-            "flex items-center gap-2.5 w-full rounded-lg text-xs font-medium text-gray-600 hover:text-[#00d4ff] hover:bg-[#00d4ff]/5 transition-all duration-200",
+            "flex items-center gap-2.5 w-full rounded-lg text-xs font-medium text-gray-600 hover:text-[#00d4ff] hover:bg-[#00d4ff]/[0.03] transition-all duration-200",
             collapsed ? "justify-center p-2.5" : "px-3 py-2"
           )}
         >

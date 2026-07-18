@@ -123,7 +123,7 @@ export default function DashboardPage() {
             label="Total XP"
             value={totalXP}
             icon={Zap}
-            color="#00d4ff"
+            color="#3b82f6"
           />
         </BentoCard>
 
@@ -165,11 +165,19 @@ export default function DashboardPage() {
           <BentoCard variant="yellow" span={2} rowSpan={2} delay={0.25}>
             <div className="p-5 h-full flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <Target className="h-4 w-4 text-[#facc15]" strokeWidth={2.5} />
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(250, 204, 21, 0.1), rgba(250, 204, 21, 0.03))",
+                    border: "1px solid rgba(250, 204, 21, 0.12)",
+                  }}
+                >
+                  <Target className="h-3.5 w-3.5 text-[#facc15]" style={{ filter: "drop-shadow(0 0 3px rgba(250, 204, 21, 0.4))" }} strokeWidth={2.5} />
+                </div>
                 <h3 className="text-xs font-semibold text-[#facc15]/80 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
                   Active Missions
                 </h3>
-                <span className="ml-auto text-[10px] text-gray-600 font-[family-name:var(--font-mono)]">
+                <span className="ml-auto badge badge-yellow" style={{ padding: "2px 6px", fontSize: "8px" }}>
                   {activeTasks.length}
                 </span>
               </div>
@@ -219,12 +227,20 @@ export default function DashboardPage() {
           </BentoCard>
         )}
 
-        {/* ===== WAR ROOM — neutral/danger ===== */}
+        {/* ===== WAR ROOM — red module ===== */}
         {allDuels.length > 0 && (
-          <BentoCard variant="neutral" span={2} delay={0.3}>
+          <BentoCard variant="red" span={2} delay={0.3}>
             <div className="p-5 h-full flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <Swords className="h-4 w-4 text-red-400" strokeWidth={2.5} />
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.03))",
+                    border: "1px solid rgba(239, 68, 68, 0.12)",
+                  }}
+                >
+                  <Swords className="h-3.5 w-3.5 text-red-400" style={{ filter: "drop-shadow(0 0 3px rgba(239, 68, 68, 0.4))" }} strokeWidth={2.5} />
+                </div>
                 <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
                   War Room
                 </h3>
@@ -274,11 +290,19 @@ export default function DashboardPage() {
           <BentoCard variant="purple" span={2} rowSpan={2} delay={0.35}>
             <div className="p-5 h-full flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <Trophy className="h-4 w-4 text-[#a855f7]" strokeWidth={2.5} />
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.03))",
+                    border: "1px solid rgba(168, 85, 247, 0.12)",
+                  }}
+                >
+                  <Trophy className="h-3.5 w-3.5 text-[#a855f7]" style={{ filter: "drop-shadow(0 0 3px rgba(168, 85, 247, 0.4))" }} strokeWidth={2.5} />
+                </div>
                 <h3 className="text-xs font-semibold text-[#a855f7]/80 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
                   {guild.name}
                 </h3>
-                <span className="ml-auto text-[10px] text-gray-600 font-[family-name:var(--font-mono)]">
+                <span className="ml-auto badge badge-purple" style={{ padding: "2px 6px", fontSize: "8px" }}>
                   {guild.memberCount} members
                 </span>
               </div>
@@ -314,11 +338,22 @@ export default function DashboardPage() {
           <BentoCard variant="neutral" span={2} delay={0.45}>
             <div className="p-5 h-full flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <Activity className="h-4 w-4 text-[#00d4ff]" strokeWidth={2.5} />
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 212, 255, 0.03))",
+                    border: "1px solid rgba(0, 212, 255, 0.1)",
+                  }}
+                >
+                  <Activity className="h-3.5 w-3.5 text-[#00d4ff]" style={{ filter: "drop-shadow(0 0 3px rgba(0, 212, 255, 0.4))" }} strokeWidth={2.5} />
+                </div>
                 <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
                   Live Feed
                 </h3>
-                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-[#00d4ff] animate-pulse" />
+                <div className="ml-auto badge badge-online" style={{ padding: "2px 6px", fontSize: "8px" }}>
+                  <span className="badge-dot" />
+                  LIVE
+                </div>
               </div>
               <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
                 {feed.slice(0, 8).map((item) => {
