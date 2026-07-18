@@ -7,7 +7,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { User, ArrowRight } from "lucide-react";
+import { Terminal, ArrowRight, User } from "lucide-react";
 
 export default function OnboardingPage() {
   const { user, loading } = useAuth();
@@ -65,6 +65,7 @@ export default function OnboardingPage() {
         level: 1,
         guildId: null,
         achievements: [],
+        xpLost: 0,
       });
 
       router.push("/dashboard");
@@ -76,8 +77,8 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#020817" }}>
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
       </div>
     );
   }
@@ -88,7 +89,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950 px-4">
+    <div className="min-h-screen flex items-center justify-center cyber-grid px-4" style={{ background: "#020817" }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,56 +101,64 @@ export default function OnboardingPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            className="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#00d4ff] to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#00d4ff]/20"
           >
-            <User className="h-10 w-10 text-blue-600" />
+            <Terminal className="h-8 w-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Choose your callsign
+          <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-mono)] tracking-tight">
+            <span className="text-[#00d4ff]">&gt;</span> Initialize Profile
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            This will be your identity in the Taskivo universe
+          <p className="text-gray-500 mt-1 text-xs font-[family-name:var(--font-mono)] uppercase tracking-widest">
+            Choose your operator callsign
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
+        <div className="glass neon-border rounded-xl p-6 corner-accent">
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Your Callsign
+              <label className="block text-[10px] text-gray-500 font-[family-name:var(--font-mono)] uppercase tracking-widest mb-2">
+                Callsign
               </label>
-              <input
-                type="text"
-                value={callsign}
-                onChange={(e) => {
-                  setCallsign(e.target.value);
-                  setError("");
-                }}
-                placeholder="Enter your callsign"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                maxLength={20}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00d4ff] text-xs font-[family-name:var(--font-mono)]">{'>'}</span>
+                <input
+                  type="text"
+                  value={callsign}
+                  onChange={(e) => {
+                    setCallsign(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="enter_callsign"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg bg-black/40 border border-gray-800 text-white placeholder-gray-700 text-sm font-[family-name:var(--font-mono)] focus:outline-none focus:border-[#00d4ff]/40 focus:ring-1 focus:ring-[#00d4ff]/20 transition-all"
+                  maxLength={20}
+                />
+              </div>
               {error && (
-                <p className="mt-2 text-sm text-red-500">{error}</p>
+                <p className="mt-2 text-[10px] text-red-400 font-[family-name:var(--font-mono)]">{error}</p>
               )}
             </div>
 
             <Button
               type="submit"
               disabled={callsign.length < 3 || saving}
+              variant="neon"
               className="w-full gap-2"
             >
               {saving ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
               ) : (
                 <>
-                  Start your journey
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
+                  INITIALIZE
                 </>
               )}
             </Button>
           </form>
         </div>
+
+        <p className="text-center mt-4 text-[9px] text-gray-700 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
+          UID: {user.uid.substring(0, 8)}...
+        </p>
       </motion.div>
     </div>
   );

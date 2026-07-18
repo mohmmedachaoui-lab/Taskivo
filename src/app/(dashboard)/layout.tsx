@@ -9,7 +9,9 @@ import { useAppStore } from "@/store";
 import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import FloatingActions from "@/components/ui/FloatingActions";
+import TerminalOverride from "@/components/ui/TerminalOverride";
 import { DeepModeProvider } from "@/components/ui/DeepMode";
+import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
 import { motion } from "framer-motion";
 
 export default function DashboardLayout({
@@ -77,23 +79,26 @@ export default function DashboardLayout({
   }
 
   return (
-    <DeepModeProvider>
-      <div className="min-h-screen cyber-grid" style={{ background: "#020817" }}>
-        <Sidebar />
-        <BottomNav />
-        <FloatingActions />
-        <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
-          <div className="p-4 lg:p-6 max-w-[1400px] mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              {children}
-            </motion.div>
-          </div>
-        </main>
-      </div>
-    </DeepModeProvider>
+    <DarkModeV2Provider>
+      <DeepModeProvider>
+        <div className="min-h-screen cyber-grid" style={{ background: "#020817" }}>
+          <Sidebar />
+          <BottomNav />
+          <FloatingActions />
+          <TerminalOverride />
+          <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
+            <div className="p-4 lg:p-6 max-w-[1400px] mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                {children}
+              </motion.div>
+            </div>
+          </main>
+        </div>
+      </DeepModeProvider>
+    </DarkModeV2Provider>
   );
 }

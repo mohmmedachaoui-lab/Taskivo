@@ -7,6 +7,7 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Notifications from "@/components/social/Notifications";
+import { useDarkModeV2 } from "@/components/ui/DarkModeV2";
 import { clsx } from "clsx";
 import { useState } from "react";
 import {
@@ -45,6 +46,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { profile } = useAppStore();
+  const { isV2, toggleV2 } = useDarkModeV2();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleSignOut = async () => {
@@ -129,12 +131,40 @@ export default function Sidebar() {
         {!collapsed && (
           <div className="flex items-center justify-between px-2 py-1">
             <ThemeToggle />
+            {profile?.overrideUnlocked && (
+              <button
+                onClick={toggleV2}
+                className={clsx(
+                  "p-1.5 rounded-lg text-[9px] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-200",
+                  isV2
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                    : "bg-white/[0.03] text-gray-600 border border-gray-800 hover:border-gray-700"
+                )}
+                title="Dark Mode V2 (Override Unlocked)"
+              >
+                V2
+              </button>
+            )}
             <Notifications />
           </div>
         )}
         {collapsed && (
           <div className="flex flex-col items-center gap-1 py-1">
             <ThemeToggle />
+            {profile?.overrideUnlocked && (
+              <button
+                onClick={toggleV2}
+                className={clsx(
+                  "p-1.5 rounded-lg text-[8px] font-[family-name:var(--font-mono)] transition-all duration-200",
+                  isV2
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                    : "bg-white/[0.03] text-gray-600 border border-gray-800"
+                )}
+                title="Dark Mode V2"
+              >
+                V2
+              </button>
+            )}
             <Notifications />
           </div>
         )}

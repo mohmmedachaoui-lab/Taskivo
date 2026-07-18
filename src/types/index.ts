@@ -9,6 +9,7 @@ export interface UserProfile {
   totalXP: number;
   createdAt: number;
   onboardingComplete: boolean;
+  overrideUnlocked?: boolean;
 }
 
 export interface UserStats {
