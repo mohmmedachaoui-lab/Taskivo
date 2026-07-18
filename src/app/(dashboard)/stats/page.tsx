@@ -12,7 +12,6 @@ import {
   Zap,
   Target,
   Clock,
-  Activity,
 } from "lucide-react";
 
 function EmptyChart({ title }: { title: string }) {
@@ -21,9 +20,22 @@ function EmptyChart({ title }: { title: string }) {
       <h3 className="mb-4 text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-widest">
         {title}
       </h3>
-      <div className="flex flex-col items-center justify-center py-12">
-        <Activity className="h-6 w-6 text-gray-700 mb-2" />
-        <p className="text-xs text-gray-600 font-[family-name:var(--font-mono)]">NO DATA YET</p>
+      <div className="space-y-3">
+        <div className="flex items-end gap-1.5 h-20">
+          {[35, 22, 45, 18, 52, 30, 40].map((h, i) => (
+            <div key={i} className="flex-1 rounded-t bg-white/[0.02] border border-white/[0.03] border-b-0 shimmer" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+        <div className="flex justify-between">
+          {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+            <span key={i} className="text-[9px] text-gray-700 font-[family-name:var(--font-mono)] flex-1 text-center">{d}</span>
+          ))}
+        </div>
+        <div className="flex items-center justify-center pt-2">
+          <span className="text-[10px] text-gray-600 font-[family-name:var(--font-mono)] uppercase tracking-widest">
+            Awaiting data — complete tasks to populate
+          </span>
+        </div>
       </div>
     </Card>
   );

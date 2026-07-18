@@ -67,6 +67,18 @@ export default function Sidebar() {
       {/* Neon edge line */}
       <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4ff]/20 to-transparent" />
 
+      {/* Active indicator bar */}
+      <div
+        className="absolute left-0 w-[2px] rounded-r transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        style={{
+          top: `${navItems.findIndex((item) => pathname === item.href) * 36 + 180}px`,
+          height: "28px",
+          background: navItems.find((item) => pathname === item.href)?.accent ?? "transparent",
+          boxShadow: `0 0 8px ${navItems.find((item) => pathname === item.href)?.accent ?? "transparent"}60`,
+          opacity: pathname === "/" ? 0 : 1,
+        }}
+      />
+
       {/* Logo */}
       <div className={clsx("flex items-center border-b border-white/[0.04]", collapsed ? "justify-center p-4" : "gap-3 px-5 py-5")}>
         <div className="relative h-9 w-9 rounded-lg bg-gradient-to-br from-[#a855f7] via-[#3b82f6] to-[#00d4ff] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#00d4ff]/15">

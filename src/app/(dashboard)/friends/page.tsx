@@ -24,6 +24,7 @@ import {
   UserCheck,
   Mail,
 } from "lucide-react";
+import EmptyState from "@/components/ui/EmptyState";
 import { FriendRequest } from "@/types";
 
 interface FriendProfile {
@@ -229,13 +230,14 @@ export default function FriendsPage() {
           Your Friends ({friends.length})
         </h3>
         {friends.length === 0 && !loading ? (
-          <Card className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">No friends yet</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Search and add friends to compete together
-            </p>
-          </Card>
+          <EmptyState
+            icon={<Users className="h-8 w-8" strokeWidth={2.5} />}
+            title="No squad members yet"
+            description="Your network is your net worth. Find other agents, send friend requests, and build your crew."
+            accent="#a855f7"
+            actionLabel="Search Agents"
+            onAction={() => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus()}
+          />
         ) : (
           <div className="space-y-2">
             {friends.map((friend) => (

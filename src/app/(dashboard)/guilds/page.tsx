@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import EmptyState from "@/components/ui/EmptyState";
 
 export default function GuildsPage() {
   const { user } = useAuth();
@@ -317,11 +318,14 @@ export default function GuildsPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
           </Card>
         ) : guilds.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-12">
-            <Gamepad2 className="h-12 w-12 text-gray-300 dark:text-gray-700 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">No guilds yet</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Be the first to create a guild</p>
-          </Card>
+          <EmptyState
+            icon={<Gamepad2 className="h-8 w-8" strokeWidth={2.5} />}
+            title="No guilds found"
+            description="Be the pioneer. Create a guild and recruit agents to climb the leaderboard together."
+            accent="#a855f7"
+            actionLabel="Create First Guild"
+            onAction={() => setShowCreate(true)}
+          />
         ) : (
           <div className="space-y-2">
             {guilds.map((guild, i) => {

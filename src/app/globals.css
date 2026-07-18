@@ -710,6 +710,52 @@ select {
   background-size: 30px 30px;
 }
 
+/* ===== SHIMMER SKELETON ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 60%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ===== EMPTY STATE FLOAT ===== */
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ===== XP CELEBRATION ===== */
+@keyframes xpPop {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  70% { opacity: 1; transform: translateY(-24px) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
+}
+
+/* ===== SIDEBAR SLIDING INDICATOR ===== */
+@keyframes sidebarSlide {
+  from { transform: translateY(var(--from-y, 0)); }
+  to { transform: translateY(var(--to-y, 0)); }
+}
+
+/* ===== PREFERS-REDUCED-MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .starfield { animation: none; }
+  .marquee-track { animation: none; }
+  .shelf-card:hover { transform: none; }
+  .float-slow, .float-slow-delayed, .float-slow-delayed-2 { animation: none; }
+  .scroll-indicator { animation: none; }
+  .glow-ring-pulse { animation: none; }
+}
+
 /* ===== COMPANION CHAT BUBBLE ===== */
 .companion-chat { transform-origin: bottom right; }
 .companion-chat::after {

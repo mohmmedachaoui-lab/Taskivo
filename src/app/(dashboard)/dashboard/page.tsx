@@ -17,6 +17,7 @@ import HeroSection from "@/components/dashboard/HeroSection";
 import WeeklyActivity from "@/components/dashboard/WeeklyActivity";
 import FeaturedPreview from "@/components/dashboard/FeaturedPreview";
 import GoalBentoCard from "@/components/dashboard/GoalBentoCard";
+import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -115,6 +116,11 @@ export default function DashboardPage() {
         {/* ===== HERO — spans 2 cols, 2 rows ===== */}
         <BentoCard variant="cyan" span={2} rowSpan={2} delay={0}>
           <HeroSection />
+        </BentoCard>
+
+        {/* ===== ONBOARDING CHECKLIST ===== */}
+        <BentoCard variant="purple" span={2} delay={0.03}>
+          <OnboardingChecklist />
         </BentoCard>
 
         {/* ===== STAT CARDS ===== */}

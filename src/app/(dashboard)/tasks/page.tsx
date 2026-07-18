@@ -13,6 +13,7 @@ import {
   calculateLevel,
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
+import EmptyState from "@/components/ui/EmptyState";
 import {
   Plus,
   CheckCircle2,
@@ -323,10 +324,14 @@ export default function TasksPage() {
       )}
 
       {tasks.length === 0 && (
-        <Card className="text-center py-12">
-          <Flame className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">No tasks yet. Add one to start earning XP!</p>
-        </Card>
+        <EmptyState
+          icon={<Flame className="h-8 w-8" strokeWidth={2.5} />}
+          title="No active missions"
+          description="Your quest log is empty. Create a task to start earning XP and level up your agent."
+          accent="#facc15"
+          actionLabel="Create First Task"
+          onAction={() => setShowAdd(true)}
+        />
       )}
     </div>
   );

@@ -29,6 +29,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
+import EmptyState from "@/components/ui/EmptyState";
 
 export default function DuelsPage() {
   const { user } = useAuth();
@@ -230,11 +231,14 @@ export default function DuelsPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
           </Card>
         ) : duels.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-12">
-            <Swords className="h-12 w-12 text-gray-300 dark:text-gray-700 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">No active duels</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Challenge someone to a high-stakes duel!</p>
-          </Card>
+          <EmptyState
+            icon={<Swords className="h-8 w-8" strokeWidth={2.5} />}
+            title="No active duels"
+            description="Step into the arena. Challenge another agent and stake your XP to prove your worth."
+            accent="#ef4444"
+            actionLabel="Challenge Someone"
+            onAction={() => setShowChallenge(true)}
+          />
         ) : (
           <div className="space-y-4">
             {duels.map((duel, i) => {
