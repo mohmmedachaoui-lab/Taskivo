@@ -37,7 +37,7 @@ export default function FriendsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("friends");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<
-    { uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number }[]
+    { uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number; requestSent?: boolean }[]
   >([]);
   const [friends, setFriends] = useState<FriendProfile[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -100,10 +100,10 @@ export default function FriendsPage() {
 
   const handleSendRequest = async (targetUid: string) => {
     if (!user || !profile) return;
-    await sendFriendRequest(user.uid, profile.callsign, profile.photoURL, targetUid);
+    const result = await sendFriendRequest(user.uid, profile.callsign, profile.photoURL, targetUid);
     setSearchResults((prev) =>
       prev.map((r) =>
-        r.uid === targetUid ? { ...r, requestSent: true } : r
+        r.uid === targetUid ? { ...r, requestSent: result === "sent" } : r
       )
     );
   };

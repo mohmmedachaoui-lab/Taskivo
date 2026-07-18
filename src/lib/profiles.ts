@@ -10,8 +10,9 @@ import {
   where,
   limit,
   increment,
-  writeBatch,
+  runTransaction,
 } from "firebase/firestore";
+import { calculateLevel } from "@/lib/xp-engine";
 
 const db = () => getFirebaseDb();
 
@@ -61,7 +62,12 @@ export async function incrementPublicXP(uid: string, amount: number): Promise<vo
   const ref = doc(db(), "publicProfiles", uid);
   const snap = await getDoc(ref);
   if (snap.exists()) {
-    await updateDoc(ref, { totalXP: increment(amount) });
+    const currentXP = snap.data()?.totalXP ?? 0;
+    const newTotalXP = Math.max(0, currentXP + amount);
+    await updateDoc(ref, {
+      totalXP: newTotalXP,
+      level: calculateLevel(newTotalXP),
+    });
   }
 }
 
@@ -126,4 +132,41 @@ export async function getLeaderboard(topN: number = 50): Promise<PublicProfile[]
   return snap.docs
     .map((d) => d.data() as PublicProfile)
     .sort((a, b) => b.totalXP - a.totalXP);
+}
+
+export async function applyXPTransaction(
+  uid: string,
+  xpChange: number,
+  extraStats: Record<string, unknown> = {}
+): Promise<{ newTotalXP: number; newLevel: number }> {
+  const dbInstance = getFirebaseDb();
+  return runTransaction(dbInstance, async (transaction) => {
+    const userRef = doc(dbInstance, "users", uid);
+    const statsRef = doc(dbInstance, "stats", uid);
+    const ppRef = doc(dbInstance, "publicProfiles", uid);
+
+    const [userSnap, statsSnap, ppSnap] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(statsRef),
+      transaction.get(ppRef),
+    ]);
+
+    const currentXP = userSnap.data()?.totalXP ?? 0;
+    const newTotalXP = Math.max(0, currentXP + xpChange);
+    const newLevel = calculateLevel(newTotalXP);
+    const xpChangeCapped = newTotalXP - currentXP;
+
+    transaction.update(userRef, { totalXP: increment(xpChangeCapped) });
+    const { totalXP: _ignored, ...restStats } = extraStats;
+    transaction.update(statsRef, { totalXP: increment(xpChangeCapped), ...restStats });
+
+    if (ppSnap.exists()) {
+      transaction.update(ppRef, {
+        totalXP: increment(xpChangeCapped),
+        level: newLevel,
+      });
+    }
+
+    return { newTotalXP, newLevel };
+  });
 }

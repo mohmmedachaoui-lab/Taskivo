@@ -109,6 +109,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ========== ALARMS ==========
+    match /alarms/{alarmId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
     // ========== CONVERSATIONS ==========
     match /conversations/{conversationId} {
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
@@ -124,7 +132,8 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid in
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
         allow create: if request.auth != null && request.auth.uid == request.resource.data.senderUid;
-        allow update: if request.auth != null && request.auth.uid == resource.data.senderUid;
+        allow update: if request.auth != null && request.auth.uid in
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
         allow delete: if false;
       }
 

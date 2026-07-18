@@ -15,8 +15,8 @@ import {
   checkAndUnlockAchievements,
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
-import { incrementPublicXP } from "@/lib/profiles";
-import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
+import { applyXPTransaction } from "@/lib/profiles";
+import { doc, runTransaction, increment } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import EmptyState from "@/components/ui/EmptyState";
 import {
@@ -61,11 +61,10 @@ export default function TasksPage() {
       }
       await toggleTask(id);
 
-      const db = getFirebaseDb();
-      await updateDoc(doc(db, "users", user.uid), { totalXP: increment(task.xpAwarded) });
-      await updateDoc(doc(db, "stats", user.uid), { totalXP: increment(task.xpAwarded), tasksCompleted: increment(1) });
-      await incrementPublicXP(user.uid, task.xpAwarded);
-      setProfile({ ...profile, totalXP: profile.totalXP + task.xpAwarded });
+      const { newTotalXP } = await applyXPTransaction(user.uid, task.xpAwarded, {
+        tasksCompleted: increment(1),
+      });
+      setProfile({ ...profile, totalXP: newTotalXP });
 
       await checkAndUnlockAchievements(user.uid);
       await addActivityFeedItem(
@@ -94,19 +93,47 @@ export default function TasksPage() {
     const db = getFirebaseDb();
     for (const task of tasks) {
       if (!task.completed && !task.penalty && task.deadline && task.deadline < currentTime) {
-        setPenaltyFlash(task.id);
-        setTimeout(() => setPenaltyFlash(null), 3000);
-        await updateDoc(doc(db, "tasks", task.id), { penalty: true });
+        if (!user || !profile) continue;
+        try {
+          const { newTotalXP } = await runTransaction(db, async (transaction) => {
+            const taskRef = doc(db, "tasks", task.id);
+            const taskSnap = await transaction.get(taskRef);
+            if (!taskSnap.exists() || taskSnap.data().penalty) return { newTotalXP: profile.totalXP };
 
-        const penalty = calculateMissedTaskPenalty(task.difficulty, level);
-        if (user && profile) {
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          const currentXP = userSnap.data()?.totalXP ?? 0;
-          const actualPenalty = Math.min(penalty, currentXP);
-          await updateDoc(doc(db, "users", user.uid), { totalXP: increment(-actualPenalty) });
-          await updateDoc(doc(db, "stats", user.uid), { totalXP: increment(-actualPenalty), tasksFailed: increment(1), xpLost: increment(actualPenalty) });
-          await incrementPublicXP(user.uid, -actualPenalty);
-          setProfile({ ...profile, totalXP: Math.max(0, profile.totalXP - actualPenalty) });
+            const userRef = doc(db, "users", user.uid);
+            const statsRef = doc(db, "stats", user.uid);
+            const ppRef = doc(db, "publicProfiles", user.uid);
+            const [userSnap, ppSnap] = await Promise.all([
+              transaction.get(userRef),
+              transaction.get(ppRef),
+            ]);
+
+            const penalty = calculateMissedTaskPenalty(task.difficulty, level);
+            const currentXP = userSnap.data()?.totalXP ?? 0;
+            const actualPenalty = Math.min(penalty, currentXP);
+            const newXP = currentXP - actualPenalty;
+
+            transaction.update(taskRef, { penalty: true });
+            transaction.update(userRef, { totalXP: increment(-actualPenalty) });
+            transaction.update(statsRef, {
+              totalXP: increment(-actualPenalty),
+              tasksFailed: increment(1),
+              xpLost: increment(actualPenalty),
+            });
+            if (ppSnap.exists()) {
+              transaction.update(ppRef, {
+                totalXP: increment(-actualPenalty),
+                level: calculateLevel(newXP),
+              });
+            }
+
+            return { newTotalXP: newXP };
+          });
+          setPenaltyFlash(task.id);
+          setTimeout(() => setPenaltyFlash(null), 3000);
+          setProfile({ ...profile, totalXP: newTotalXP });
+        } catch {
+          // Transaction failed — task not penalized, will retry next loop
         }
       }
     }

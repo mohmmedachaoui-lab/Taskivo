@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/ui/Card";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAppStore } from "@/store";
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
@@ -39,6 +39,18 @@ export default function SettingsPage() {
     duels: true,
     achievements: true,
   });
+
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(getFirebaseDb(), "users", user.uid)).then((snap) => {
+      if (snap.exists()) {
+        const saved = snap.data().notificationSettings;
+        if (saved) {
+          setNotifSettings((prev) => ({ ...prev, ...saved }));
+        }
+      }
+    });
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut(getFirebaseAuth());
