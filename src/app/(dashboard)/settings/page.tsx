@@ -21,7 +21,8 @@ import {
   Users,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
@@ -52,8 +53,14 @@ export default function SettingsPage() {
     }
   };
 
-  const toggleNotif = (key: keyof typeof notifSettings) => {
-    setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleNotif = async (key: keyof typeof notifSettings) => {
+    const newVal = !notifSettings[key];
+    setNotifSettings((prev) => ({ ...prev, [key]: newVal }));
+    if (user) {
+      await updateDoc(doc(getFirebaseDb(), "users", user.uid), {
+        [`notificationSettings.${key}`]: newVal,
+      });
+    }
   };
 
   const sections = [

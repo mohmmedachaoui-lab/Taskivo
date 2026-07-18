@@ -109,6 +109,27 @@
       "fields": [
         { "fieldPath": "friendCode", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "publicProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "callsign", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "friendCode", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "totalXP", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

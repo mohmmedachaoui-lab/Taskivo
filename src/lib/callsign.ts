@@ -1,5 +1,6 @@
 import { getFirebaseDb } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { getPublicProfiles, searchPublicProfiles } from "@/lib/profiles";
 
 export function generateFriendSuffix(): number {
   return Math.floor(1000 + Math.random() * 9000);
@@ -12,15 +13,12 @@ export function formatFriendCode(callsign: string, suffix: number): string {
 export async function generateUniqueFriendCode(
   callsign: string
 ): Promise<{ friendCode: string; friendSuffix: number }> {
-  const db = getFirebaseDb();
   let attempts = 0;
   while (attempts < 20) {
     const suffix = generateFriendSuffix();
     const friendCode = formatFriendCode(callsign, suffix);
-    const existing = await getDocs(
-      query(collection(db, "users"), where("friendCode", "==", friendCode))
-    );
-    if (existing.empty) {
+    const existing = await searchPublicProfiles(friendCode);
+    if (existing.length === 0) {
       return { friendCode, friendSuffix: suffix };
     }
     attempts++;
@@ -35,18 +33,14 @@ export async function generateUniqueFriendCode(
 export async function searchByFriendCode(
   friendCode: string
 ): Promise<{ uid: string; callsign: string; photoURL: string | null; level: number; totalXP: number } | null> {
-  const db = getFirebaseDb();
-  const normalized = friendCode.trim().toUpperCase();
-  const snap = await getDocs(
-    query(collection(db, "users"), where("friendCode", "==", normalized))
-  );
-  if (snap.empty) return null;
-  const d = snap.docs[0].data();
+  const results = await searchPublicProfiles(friendCode);
+  if (results.length === 0) return null;
+  const p = results[0];
   return {
-    uid: d.uid,
-    callsign: d.callsign,
-    photoURL: d.photoURL,
-    level: d.level ?? 1,
-    totalXP: d.totalXP ?? 0,
+    uid: p.uid,
+    callsign: p.callsign,
+    photoURL: p.photoURL,
+    level: p.level,
+    totalXP: p.totalXP,
   };
 }

@@ -2,12 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ========== USERS ==========
+    // ========== USERS (private — self-read only) ==========
     match /users/{userId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
+    }
+
+    // ========== PUBLIC PROFILES (public read for social features) ==========
+    match /publicProfiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // ========== STATS ==========
@@ -62,7 +68,10 @@ service cloud.firestore {
         resource.data.uid1 == request.auth.uid ||
         resource.data.uid2 == request.auth.uid
       );
-      allow create: if request.auth != null;
+      allow create: if request.auth != null && (
+        request.resource.data.uid1 == request.auth.uid ||
+        request.resource.data.uid2 == request.auth.uid
+      );
       allow update: if false;
       allow delete: if false;
     }
@@ -115,7 +124,7 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid in
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
         allow create: if request.auth != null && request.auth.uid == request.resource.data.senderUid;
-        allow update: if request.auth != null;
+        allow update: if request.auth != null && request.auth.uid == resource.data.senderUid;
         allow delete: if false;
       }
 

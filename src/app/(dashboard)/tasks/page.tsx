@@ -12,8 +12,12 @@ import {
   calculateWinXP,
   calculateMissedTaskPenalty,
   calculateLevel,
+  checkAndUnlockAchievements,
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
+import { incrementPublicXP } from "@/lib/profiles";
+import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
+import { getFirebaseDb } from "@/lib/firebase";
 import EmptyState from "@/components/ui/EmptyState";
 import {
   Plus,
@@ -38,7 +42,7 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; color: string; bg: 
 
 export default function TasksPage() {
   const { user } = useAuth();
-  const { profile } = useAppStore();
+  const { profile, setProfile } = useAppStore();
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks(user?.uid);
   const [showAdd, setShowAdd] = useState(false);
@@ -56,6 +60,14 @@ export default function TasksPage() {
         return;
       }
       await toggleTask(id);
+
+      const db = getFirebaseDb();
+      await updateDoc(doc(db, "users", user.uid), { totalXP: increment(task.xpAwarded) });
+      await updateDoc(doc(db, "stats", user.uid), { totalXP: increment(task.xpAwarded), tasksCompleted: increment(1) });
+      await incrementPublicXP(user.uid, task.xpAwarded);
+      setProfile({ ...profile, totalXP: profile.totalXP + task.xpAwarded });
+
+      await checkAndUnlockAchievements(user.uid);
       await addActivityFeedItem(
         user.uid,
         profile.callsign,
@@ -64,7 +76,7 @@ export default function TasksPage() {
         task.xpAwarded
       );
     },
-    [toggleTask, tasks, user, profile]
+    [toggleTask, tasks, user, profile, setProfile]
   );
 
   const handleAdd = useCallback(async () => {
@@ -79,16 +91,26 @@ export default function TasksPage() {
 
   const checkDeadlines = useCallback(async () => {
     const currentTime = Date.now();
-    const db = (await import("@/lib/firebase")).getFirebaseDb();
-    const { doc, updateDoc } = await import("firebase/firestore");
+    const db = getFirebaseDb();
     for (const task of tasks) {
       if (!task.completed && !task.penalty && task.deadline && task.deadline < currentTime) {
         setPenaltyFlash(task.id);
         setTimeout(() => setPenaltyFlash(null), 3000);
         await updateDoc(doc(db, "tasks", task.id), { penalty: true });
+
+        const penalty = calculateMissedTaskPenalty(task.difficulty, level);
+        if (user && profile) {
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          const currentXP = userSnap.data()?.totalXP ?? 0;
+          const actualPenalty = Math.min(penalty, currentXP);
+          await updateDoc(doc(db, "users", user.uid), { totalXP: increment(-actualPenalty) });
+          await updateDoc(doc(db, "stats", user.uid), { totalXP: increment(-actualPenalty), tasksFailed: increment(1), xpLost: increment(actualPenalty) });
+          await incrementPublicXP(user.uid, -actualPenalty);
+          setProfile({ ...profile, totalXP: Math.max(0, profile.totalXP - actualPenalty) });
+        }
       }
     }
-  }, [tasks]);
+  }, [tasks, user, profile, level, setProfile]);
 
   useEffect(() => {
     const interval = setInterval(checkDeadlines, 30000);

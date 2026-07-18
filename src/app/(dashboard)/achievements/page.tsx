@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card";
 import { Trophy, Lock, Zap, Flame, Brain, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/store";
-import { ACHIEVEMENTS_DEFINITIONS } from "@/lib/xp-engine";
+import { ACHIEVEMENTS_DEFINITIONS, calculateLevel } from "@/lib/xp-engine";
 
 const CATEGORIES = ["All", "Tasks", "Streaks", "Progression", "Duels", "Focus", "Special"] as const;
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -24,7 +24,7 @@ export default function AchievementsPage() {
   const unlocked = stats?.achievements ?? [];
   const tasksCompleted = stats?.tasksCompleted ?? 0;
   const currentStreak = stats?.currentStreak ?? 0;
-  const level = profile?.level ?? 1;
+  const level = profile ? calculateLevel(profile.totalXP) : 1;
   const totalXP = profile?.totalXP ?? 0;
   const duelsWon = stats?.duelsWon ?? 0;
 

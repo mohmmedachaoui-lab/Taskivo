@@ -10,8 +10,16 @@ import {
   orderBy,
   limit,
   increment,
+  runTransaction,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
+import {
+  getPublicProfile,
+  getPublicProfiles,
+  searchPublicProfiles,
+  getLeaderboard,
+  incrementPublicXP,
+} from "@/lib/profiles";
 import {
   Duel,
   FriendRequest,
@@ -40,6 +48,24 @@ export async function sendFriendRequest(
     )
   );
   if (!existing.empty) return "already_sent";
+
+  const alreadyFriends1 = await getDocs(
+    query(
+      collection(db(), "friendships"),
+      where("uid1", "==", fromUid),
+      where("uid2", "==", toUid)
+    )
+  );
+  if (!alreadyFriends1.empty) return "already_friends";
+
+  const alreadyFriends2 = await getDocs(
+    query(
+      collection(db(), "friendships"),
+      where("uid1", "==", toUid),
+      where("uid2", "==", fromUid)
+    )
+  );
+  if (!alreadyFriends2.empty) return "already_friends";
 
   const reverse = await getDocs(
     query(
@@ -132,45 +158,13 @@ export async function getPendingFriendRequests(
 export async function searchUsers(
   searchTerm: string
 ): Promise<{ uid: string; callsign: string; photoURL: string | null; level: number; totalXP: number }[]> {
-  if (!searchTerm.trim()) return [];
-
-  const term = searchTerm.trim();
-
-  // Try friendCode exact match first (e.g. "Agent#4821")
-  if (term.includes("#")) {
-    const snap = await getDocs(
-      query(
-        collection(db(), "users"),
-        where("friendCode", "==", term.toUpperCase()),
-        limit(5)
-      )
-    );
-    if (!snap.empty) {
-      return snap.docs.map((d) => ({
-        uid: d.data().uid,
-        callsign: d.data().callsign,
-        photoURL: d.data().photoURL,
-        level: d.data().level ?? 1,
-        totalXP: d.data().totalXP ?? 0,
-      }));
-    }
-  }
-
-  // Fall back to callsign prefix search
-  const snap = await getDocs(
-    query(
-      collection(db(), "users"),
-      where("callsign", ">=", term),
-      where("callsign", "<=", term + "\uf8ff"),
-      limit(10)
-    )
-  );
-  return snap.docs.map((d) => ({
-    uid: d.data().uid,
-    callsign: d.data().callsign,
-    photoURL: d.data().photoURL,
-    level: d.data().level ?? 1,
-    totalXP: d.data().totalXP ?? 0,
+  const profiles = await searchPublicProfiles(searchTerm);
+  return profiles.map((p) => ({
+    uid: p.uid,
+    callsign: p.callsign,
+    photoURL: p.photoURL,
+    level: p.level,
+    totalXP: p.totalXP,
   }));
 }
 
@@ -260,36 +254,36 @@ export async function resolveDuel(duelId: string): Promise<void> {
       winnerId === duel.challengerId ? duel.opponentId : duel.challengerId;
     const stake = duel.stakeXP || 100;
 
-    const winnerSnap = await getDoc(doc(db(), "stats", winnerId));
-    const winnerDuelsWon = (winnerSnap.data()?.duelsWon ?? 0) + 1;
-    await updateDoc(doc(db(), "stats", winnerId), {
-      totalXP: increment(stake),
-      duelsWon: winnerDuelsWon,
-    });
+    await runTransaction(db(), async (transaction) => {
+      const winnerRef = doc(db(), "stats", winnerId);
+      const loserRef = doc(db(), "stats", loserId);
+      const [winnerSnap, loserSnap] = await Promise.all([
+        transaction.get(winnerRef),
+        transaction.get(loserRef),
+      ]);
 
-    const loserSnap = await getDoc(doc(db(), "stats", loserId));
-    const loserXP = loserSnap.data()?.totalXP ?? 0;
-    const actualPenalty = Math.min(stake, loserXP);
-    await updateDoc(doc(db(), "stats", loserId), {
-      totalXP: increment(-actualPenalty),
-      xpLost: increment(actualPenalty),
-    });
+      const loserXP = loserSnap.data()?.totalXP ?? 0;
+      const actualPenalty = Math.min(stake, loserXP);
 
-    const winnerUserSnap = await getDoc(doc(db(), "users", winnerId));
-    if (winnerUserSnap.exists()) {
-      await updateDoc(doc(db(), "users", winnerId), {
+      transaction.update(winnerRef, {
         totalXP: increment(stake),
+        duelsWon: (winnerSnap.data()?.duelsWon ?? 0) + 1,
       });
-    }
+      transaction.update(loserRef, {
+        totalXP: increment(-actualPenalty),
+        xpLost: increment(actualPenalty),
+      });
 
-    const loserUserSnap = await getDoc(doc(db(), "users", loserId));
-    if (loserUserSnap.exists()) {
-      const loserUserXP = loserUserSnap.data()?.totalXP ?? 0;
-      const actualUserPenalty = Math.min(stake, loserUserXP);
-      await updateDoc(doc(db(), "users", loserId), {
-        totalXP: increment(-actualUserPenalty),
-      });
-    }
+      return { actualPenalty };
+    }).catch(() => {});
+
+    await incrementPublicXP(winnerId, stake);
+    await incrementPublicXP(loserId, -(duel.stakeXP || 100));
+
+    const winnerProfile = await getPublicProfile(winnerId);
+    const loserProfile = await getPublicProfile(loserId);
+    const winnerCallsign = winnerProfile?.callsign ?? "Unknown";
+    const loserCallsign = loserProfile?.callsign ?? "Unknown";
 
     const winnerName = winnerId === duel.challengerId ? duel.challengerName : duel.opponentName;
     const loserName = winnerId === duel.challengerId ? duel.opponentName : duel.challengerName;
@@ -303,14 +297,12 @@ export async function resolveDuel(duelId: string): Promise<void> {
     await createNotification(loserId, {
       type: "stake_lost",
       title: "Duel Defeat",
-      message: `You lost ${actualPenalty} XP to ${winnerName}`,
-      data: { duelId, stakeXP: actualPenalty },
+      message: `You lost ${stake} XP to ${winnerName}`,
+      data: { duelId, stakeXP: stake },
     });
 
-    const winnerCallsign = winnerUserSnap.data()?.callsign ?? "Unknown";
-    const loserCallsign = loserUserSnap.data()?.callsign ?? "Unknown";
     await addActivityFeedItem(winnerId, winnerCallsign, "duel_won", `Won a duel against ${loserCallsign}`, stake);
-    await addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -actualPenalty);
+    await addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -stake);
   }
 }
 
@@ -499,27 +491,13 @@ export async function getUserGuild(uid: string): Promise<Guild | null> {
 
 export async function getGuildMembers(memberUids: string[]): Promise<{ uid: string; callsign: string; totalXP: number; level: number }[]> {
   if (memberUids.length === 0) return [];
-  const results: { uid: string; callsign: string; totalXP: number; level: number }[] = [];
-  const batchSize = 10;
-  for (let i = 0; i < memberUids.length; i += batchSize) {
-    const batch = memberUids.slice(i, i + batchSize);
-    const snap = await getDocs(
-      query(
-        collection(db(), "users"),
-        where("uid", "in", batch)
-      )
-    );
-    snap.forEach((d) => {
-      const data = d.data();
-      results.push({
-        uid: data.uid,
-        callsign: data.callsign,
-        totalXP: data.totalXP ?? 0,
-        level: data.level ?? 1,
-      });
-    });
-  }
-  return results;
+  const profiles = await getPublicProfiles(memberUids);
+  return profiles.map((p) => ({
+    uid: p.uid,
+    callsign: p.callsign,
+    totalXP: p.totalXP,
+    level: p.level,
+  }));
 }
 
 export async function getGuildNews(guildId: string): Promise<GuildNews[]> {
@@ -592,19 +570,13 @@ export async function getGlobalLeaderboard(
 ): Promise<
   { uid: string; callsign: string; photoURL: string | null; level: number; totalXP: number }[]
 > {
-  const snap = await getDocs(
-    query(
-      collection(db(), "users"),
-      orderBy("totalXP", "desc"),
-      limit(topN)
-    )
-  );
-  return snap.docs.map((d) => ({
-    uid: d.data().uid,
-    callsign: d.data().callsign,
-    photoURL: d.data().photoURL,
-    level: d.data().level ?? 1,
-    totalXP: d.data().totalXP ?? 0,
+  const profiles = await getLeaderboard(topN);
+  return profiles.map((p) => ({
+    uid: p.uid,
+    callsign: p.callsign,
+    photoURL: p.photoURL,
+    level: p.level,
+    totalXP: p.totalXP,
   }));
 }
 

@@ -1,4 +1,6 @@
 import { Task } from "@/types";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { getFirebaseDb } from "@/lib/firebase";
 
 const XP_MIN_WIN = 50;
 const XP_MAX_WIN = 300;
@@ -71,7 +73,7 @@ export function calculateLevel(totalXP: number): number {
 
 export function calculateXPProgress(totalXP: number): number {
   const xpPerLevel = 500;
-  return totalXP % xpPerLevel;
+  return ((totalXP % xpPerLevel) / xpPerLevel) * 100;
 }
 
 export function getRankTitle(level: number): string {
@@ -106,3 +108,39 @@ export const ACHIEVEMENTS_DEFINITIONS = [
   { id: "focus_50", name: "Zen Master", description: "Complete 50 focus sessions", icon: "🧘", requirement: 50, type: "focus_sessions" as const, category: "Focus" },
   { id: "early_bird", name: "Early Bird", description: "Complete a task before 8 AM", icon: "🐦", requirement: 1, type: "tasks_completed" as const, category: "Special" },
 ] as const;
+
+export async function checkAndUnlockAchievements(uid: string): Promise<string[]> {
+  const db = getFirebaseDb();
+  const statsSnap = await getDoc(doc(db, "stats", uid));
+  if (!statsSnap.exists()) return [];
+  const stats = statsSnap.data();
+  const unlocked: string[] = stats.achievements ?? [];
+
+  const userSnap = await getDoc(doc(db, "users", uid));
+  const totalXP = userSnap.data()?.totalXP ?? 0;
+  const level = calculateLevel(totalXP);
+
+  const newlyUnlocked: string[] = [];
+
+  for (const ach of ACHIEVEMENTS_DEFINITIONS) {
+    if (unlocked.includes(ach.id)) continue;
+    let met = false;
+    switch (ach.type) {
+      case "tasks_completed": met = (stats.tasksCompleted ?? 0) >= ach.requirement; break;
+      case "streak": met = (stats.currentStreak ?? 0) >= ach.requirement; break;
+      case "level": met = level >= ach.requirement; break;
+      case "xp": met = totalXP >= ach.requirement; break;
+      case "duels_won": met = (stats.duelsWon ?? 0) >= ach.requirement; break;
+      case "focus_sessions": met = (stats.focusSessions ?? 0) >= ach.requirement; break;
+    }
+    if (met) newlyUnlocked.push(ach.id);
+  }
+
+  if (newlyUnlocked.length > 0) {
+    await updateDoc(doc(db, "stats", uid), {
+      achievements: arrayUnion(...newlyUnlocked),
+    });
+  }
+
+  return newlyUnlocked;
+}

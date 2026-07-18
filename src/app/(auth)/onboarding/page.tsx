@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { generateUniqueFriendCode } from "@/lib/callsign";
+import { createPublicProfile } from "@/lib/profiles";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { Terminal, ArrowRight } from "lucide-react";
@@ -71,6 +72,17 @@ export default function OnboardingPage() {
         guildId: null,
         achievements: [],
         xpLost: 0,
+      });
+
+      await createPublicProfile(user.uid, {
+        uid: user.uid,
+        callsign,
+        photoURL: user.photoURL,
+        friendCode,
+        friendSuffix,
+        rank: "Novice",
+        level: 1,
+        totalXP: 0,
       });
 
       router.push("/dashboard");

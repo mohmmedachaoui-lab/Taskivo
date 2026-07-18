@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 import Card from "@/components/ui/Card";
 import { useAuth } from "@/hooks/useAuth";
 import { getGlobalLeaderboard, getFriends } from "@/lib/social";
-import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { getPublicProfiles } from "@/lib/profiles";
 import { Crown, Users, Zap } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -46,27 +45,18 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
     try {
       const friendIds = friendUids ?? (await getFriends(user.uid));
       const allIds = [user.uid, ...friendIds];
-      const profiles = await Promise.all(
-        allIds.map(async (uid) => {
-          const snap = await getDoc(doc(getFirebaseDb(), "users", uid));
-          if (snap.exists()) {
-            const d = snap.data();
-            return {
-              uid: d.uid,
-              callsign: d.callsign,
-              photoURL: d.photoURL,
-              level: d.level ?? 1,
-              totalXP: d.totalXP ?? 0,
-              isUser: d.uid === user?.uid,
-            };
-          }
-          return null;
-        })
-      );
+      const profiles = await getPublicProfiles(allIds);
       const sorted = profiles
-        .filter(Boolean)
-        .sort((a, b) => (b!.totalXP) - (a!.totalXP));
-      setEntries(sorted as LeaderboardEntry[]);
+        .map((p) => ({
+          uid: p.uid,
+          callsign: p.callsign,
+          photoURL: p.photoURL,
+          level: p.level,
+          totalXP: p.totalXP,
+          isUser: p.uid === user?.uid,
+        }))
+        .sort((a, b) => b.totalXP - a.totalXP);
+      setEntries(sorted);
     } catch (err) {
       console.error("Failed to load friends leaderboard:", err);
     }

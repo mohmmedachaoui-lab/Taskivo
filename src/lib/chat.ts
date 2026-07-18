@@ -9,6 +9,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
+import { getPublicProfile } from "@/lib/profiles";
 import { Conversation } from "@/types";
 
 const db = () => getFirebaseDb();
@@ -231,16 +232,15 @@ export async function getUserProfile(
   level: number;
   totalXP: number;
 } | null> {
-  const snap = await getDoc(doc(db(), "users", uid));
-  if (!snap.exists()) return null;
-  const d = snap.data();
+  const profile = await getPublicProfile(uid);
+  if (!profile) return null;
   return {
-    uid: d.uid,
-    callsign: d.callsign,
-    friendCode: d.friendCode ?? "",
-    photoURL: d.photoURL,
-    level: d.level ?? 1,
-    totalXP: d.totalXP ?? 0,
+    uid: profile.uid,
+    callsign: profile.callsign,
+    friendCode: profile.friendCode,
+    photoURL: profile.photoURL,
+    level: profile.level,
+    totalXP: profile.totalXP,
   };
 }
 

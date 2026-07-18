@@ -14,8 +14,7 @@ import {
   getPendingFriendRequests,
   respondFriendRequest,
 } from "@/lib/social";
-import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { getPublicProfiles } from "@/lib/profiles";
 import FriendProfileCard from "@/components/friends/FriendProfileCard";
 import { FriendRequest, FriendProfile } from "@/types";
 import {
@@ -52,28 +51,21 @@ export default function FriendsPage() {
     setLoading(true);
     try {
       const friendUids = await getFriends(user.uid);
-      const profiles = await Promise.all(
-        friendUids.map(async (uid) => {
-          const snap = await getDoc(doc(getFirebaseDb(), "users", uid));
-          if (snap.exists()) {
-            const d = snap.data();
-            return {
-              uid: d.uid,
-              callsign: d.callsign,
-              friendCode: d.friendCode ?? "",
-              photoURL: d.photoURL,
-              level: d.level ?? 1,
-              totalXP: d.totalXP ?? 0,
-              tasksCompleted: 0,
-              duelsWon: 0,
-              achievements: [],
-              currentStreak: 0,
-            } as FriendProfile;
-          }
-          return null;
-        })
+      const profiles = await getPublicProfiles(friendUids);
+      setFriends(
+        profiles.map((p) => ({
+          uid: p.uid,
+          callsign: p.callsign,
+          friendCode: p.friendCode,
+          photoURL: p.photoURL,
+          level: p.level,
+          totalXP: p.totalXP,
+          tasksCompleted: 0,
+          duelsWon: 0,
+          achievements: [],
+          currentStreak: 0,
+        }))
       );
-      setFriends(profiles.filter(Boolean) as FriendProfile[]);
 
       const pending = await getPendingFriendRequests(user.uid);
       setRequests(pending);

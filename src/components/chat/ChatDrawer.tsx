@@ -51,7 +51,7 @@ export default function ChatDrawer() {
     if (activeConversationId && user?.uid) {
       markMessagesRead(activeConversationId, user.uid);
     }
-  }, [activeConversationId, user?.uid, messages]);
+  }, [activeConversationId, user?.uid]);
 
   useEffect(() => {
     if (showDrawer && activeConversationId) {

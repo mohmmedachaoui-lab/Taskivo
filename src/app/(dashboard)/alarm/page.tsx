@@ -5,6 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import MathChallenge from "@/components/ui/MathChallenge";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  setDoc,
+  deleteDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { getFirebaseDb } from "@/lib/firebase";
 import { AlarmClock, Plus, Trash2, Clock, Settings2 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -20,7 +32,27 @@ interface Alarm {
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+function playAlarmTone(): OscillatorNode | null {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(800, ctx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    return osc;
+  } catch {
+    return null;
+  }
+}
+
 export default function AlarmPage() {
+  const { user } = useAuth();
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newTime, setNewTime] = useState("09:00");
@@ -28,7 +60,23 @@ export default function AlarmPage() {
   const [newDifficulty, setNewDifficulty] = useState<Difficulty>("medium");
   const [activeAlarm, setActiveAlarm] = useState<Alarm | null>(null);
   const [showChallenge, setShowChallenge] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const oscRef = useRef<OscillatorNode | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(
+      collection(getFirebaseDb(), "alarms"),
+      where("uid", "==", user.uid)
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const items: Alarm[] = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Alarm[];
+      setAlarms(items);
+    });
+    return () => unsub();
+  }, [user]);
 
   const checkAlarms = useCallback(() => {
     const now = new Date();
@@ -52,48 +100,45 @@ export default function AlarmPage() {
 
   useEffect(() => {
     if (showChallenge) {
-      audioRef.current = new Audio();
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.5;
+      oscRef.current = playAlarmTone();
     }
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+      if (oscRef.current) {
+        try { oscRef.current.stop(); } catch {}
+        oscRef.current = null;
       }
     };
   }, [showChallenge]);
 
-  const toggleAlarm = (id: string) => {
-    setAlarms((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, active: !a.active } : a))
-    );
+  const toggleAlarm = async (id: string, currentActive: boolean) => {
+    if (!user) return;
+    await updateDoc(doc(getFirebaseDb(), "alarms", id), { active: !currentActive });
   };
 
-  const deleteAlarm = (id: string) => {
-    setAlarms((prev) => prev.filter((a) => a.id !== id));
+  const deleteAlarm = async (id: string) => {
+    if (!user) return;
+    await deleteDoc(doc(getFirebaseDb(), "alarms", id));
   };
 
-  const addAlarm = () => {
-    if (!newLabel.trim()) return;
-    setAlarms((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        time: newTime,
-        label: newLabel,
-        active: true,
-        days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-        difficulty: newDifficulty,
-      },
-    ]);
+  const addAlarm = async () => {
+    if (!newLabel.trim() || !user) return;
+    const ref = doc(collection(getFirebaseDb(), "alarms"));
+    await setDoc(ref, {
+      uid: user.uid,
+      time: newTime,
+      label: newLabel,
+      active: true,
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      difficulty: newDifficulty,
+    });
     setNewLabel("");
     setShowAdd(false);
   };
 
   const dismissAlarm = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
+    if (oscRef.current) {
+      try { oscRef.current.stop(); } catch {}
+      oscRef.current = null;
     }
     setShowChallenge(false);
     setActiveAlarm(null);
@@ -243,7 +288,7 @@ export default function AlarmPage() {
                 </span>
 
                 <button
-                  onClick={() => toggleAlarm(alarm.id)}
+                  onClick={() => toggleAlarm(alarm.id, alarm.active)}
                   className={`relative w-12 h-6 rounded-full transition-all duration-200 ${
                     alarm.active
                       ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"

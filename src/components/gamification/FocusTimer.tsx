@@ -10,6 +10,7 @@ import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { calculateWinXP } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
+import { incrementPublicXP } from "@/lib/profiles";
 
 type Mode = "work" | "break";
 
@@ -64,6 +65,7 @@ export default function FocusTimer() {
 
       await updateDoc(userRef, { totalXP: increment(totalEarned) });
       await updateDoc(statsRef, { totalXP: increment(totalEarned) });
+      await incrementPublicXP(user.uid, totalEarned);
 
       setTotalXP((prev) => prev + totalEarned);
 
