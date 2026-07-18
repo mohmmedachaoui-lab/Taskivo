@@ -1,0 +1,67 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { getFirebaseDb, getFirebaseMessaging } from "@/lib/firebase";
+import { getToken, onMessage } from "firebase/messaging";
+import { useAuth } from "@/hooks/useAuth";
+
+export function useFCMNotifications() {
+  const { user } = useAuth();
+  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [supported, setSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setSupported("Notification" in window && "serviceWorker" in navigator);
+    setPermission(Notification.permission);
+  }, []);
+
+  const requestPermission = async () => {
+    if (!supported || !user) return;
+
+    try {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+
+      if (result === "granted") {
+        const messaging = getFirebaseMessaging();
+        if (!messaging) return;
+
+        const token = await getToken(messaging, {
+          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+        });
+
+        if (token) {
+          const db = getFirebaseDb();
+          await updateDoc(doc(db, "users", user.uid), {
+            fcmTokens: arrayUnion(token),
+          });
+        }
+      }
+    } catch (err) {
+      console.error("FCM permission error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user || permission !== "granted") return;
+
+    const messaging = getFirebaseMessaging();
+    if (!messaging) return;
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      // Show in-app notification (browser notification)
+      if (Notification.permission === "granted") {
+        new Notification(payload.notification?.title ?? "Taskivo", {
+          body: payload.notification?.body,
+          icon: "/favicon.ico",
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user, permission]);
+
+  return { supported, permission, requestPermission };
+}

@@ -16,3 +16,23 @@ export const useAppStore = create<AppStore>((set) => ({
   setProfile: (profile) => set({ profile }),
   setStats: (stats) => set({ stats }),
 }));
+
+interface ChatStore {
+  activeConversationId: string | null;
+  showDrawer: boolean;
+  unreadCount: number;
+  setActiveConversation: (id: string | null) => void;
+  toggleDrawer: () => void;
+  setDrawerOpen: (open: boolean) => void;
+  setUnreadCount: (count: number) => void;
+}
+
+export const useChatStore = create<ChatStore>((set) => ({
+  activeConversationId: null,
+  showDrawer: false,
+  unreadCount: 0,
+  setActiveConversation: (id) => set({ activeConversationId: id }),
+  toggleDrawer: () => set((s) => ({ showDrawer: !s.showDrawer })),
+  setDrawerOpen: (open) => set({ showDrawer: open }),
+  setUnreadCount: (count) => set({ unreadCount: count }),
+}));

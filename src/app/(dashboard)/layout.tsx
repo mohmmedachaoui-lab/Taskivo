@@ -11,6 +11,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import FloatingActions from "@/components/ui/FloatingActions";
 import TerminalOverride from "@/components/ui/TerminalOverride";
+import ChatDrawer from "@/components/chat/ChatDrawer";
+import NotificationBanner from "@/components/ui/NotificationBanner";
 import { DeepModeProvider } from "@/components/ui/DeepMode";
 import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
 import { motion, AnimatePresence } from "framer-motion";
@@ -134,6 +136,8 @@ export default function DashboardLayout({
           <BottomNav />
           <FloatingActions />
           <TerminalOverride />
+          <ChatDrawer />
+          <NotificationBanner />
           <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto">
               <AnimatePresence mode="wait">

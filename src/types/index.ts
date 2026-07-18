@@ -4,12 +4,16 @@ export interface UserProfile {
   displayName: string;
   photoURL: string | null;
   callsign: string;
+  friendCode: string; // e.g. "Agent#4821" — immutable once set
+  friendSuffix: number; // 4-digit suffix
   rank: string;
   level: number;
   totalXP: number;
   createdAt: number;
   onboardingComplete: boolean;
   overrideUnlocked?: boolean;
+  fcmTokens?: string[];
+  notificationSettings?: NotificationSettings;
 }
 
 export interface UserStats {
@@ -168,4 +172,77 @@ export interface CompanionState {
   nudges: CompanionNudge[];
   sessionsToday: number;
   totalFocusMinutes: number;
+}
+
+// ========== FRIEND ID / CALLSIGN ==========
+
+export interface FriendCode {
+  friendCode: string; // e.g. "Agent#4821"
+  friendSuffix: number; // 4-digit suffix
+}
+
+// ========== CONVERSATIONS / MESSAGING ==========
+
+export interface Conversation {
+  id: string;
+  type: "direct" | "group";
+  members: string[];
+  memberCallsigns: Record<string, string>;
+  lastMessage: string;
+  lastMessageAt: number;
+  lastMessageUid: string;
+  createdBy: string;
+  groupName?: string;
+  groupIcon?: string;
+  createdAt: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderUid: string;
+  senderCallsign: string;
+  text: string;
+  timestamp: number;
+  read: boolean;
+}
+
+export interface TypingDoc {
+  isTyping: boolean;
+  updatedAt: number;
+}
+
+// ========== FRIEND PROFILE (for mini profile card) ==========
+
+export interface FriendProfile {
+  uid: string;
+  callsign: string;
+  friendCode: string;
+  photoURL: string | null;
+  level: number;
+  totalXP: number;
+  tasksCompleted: number;
+  duelsWon: number;
+  achievements: string[];
+  currentStreak: number;
+  online?: boolean;
+}
+
+// ========== CHAT STORE STATE ==========
+
+export interface ChatState {
+  activeConversationId: string | null;
+  showDrawer: boolean;
+  unreadCount: number;
+  setActiveConversation: (id: string | null) => void;
+  toggleDrawer: () => void;
+  setUnreadCount: (count: number) => void;
+}
+
+// ========== NOTIFICATION SETTINGS ==========
+
+export interface NotificationSettings {
+  friendRequests: boolean;
+  messages: boolean;
+  duels: boolean;
+  achievements: boolean;
 }

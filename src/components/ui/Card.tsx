@@ -8,11 +8,13 @@ interface CardProps {
   className?: string;
   hover?: boolean;
   glass?: boolean;
+  onClick?: () => void;
 }
 
-export default function Card({ children, className, hover = false, glass = true }: CardProps) {
+export default function Card({ children, className, hover = false, glass = true, onClick }: CardProps) {
   return (
     <div
+      onClick={onClick}
       className={clsx(
         "rounded-xl p-5 transition-all duration-300",
         glass

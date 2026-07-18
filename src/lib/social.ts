@@ -133,11 +133,35 @@ export async function searchUsers(
   searchTerm: string
 ): Promise<{ uid: string; callsign: string; photoURL: string | null; level: number; totalXP: number }[]> {
   if (!searchTerm.trim()) return [];
+
+  const term = searchTerm.trim();
+
+  // Try friendCode exact match first (e.g. "Agent#4821")
+  if (term.includes("#")) {
+    const snap = await getDocs(
+      query(
+        collection(db(), "users"),
+        where("friendCode", "==", term.toUpperCase()),
+        limit(5)
+      )
+    );
+    if (!snap.empty) {
+      return snap.docs.map((d) => ({
+        uid: d.data().uid,
+        callsign: d.data().callsign,
+        photoURL: d.data().photoURL,
+        level: d.data().level ?? 1,
+        totalXP: d.data().totalXP ?? 0,
+      }));
+    }
+  }
+
+  // Fall back to callsign prefix search
   const snap = await getDocs(
     query(
       collection(db(), "users"),
-      where("callsign", ">=", searchTerm),
-      where("callsign", "<=", searchTerm + "\uf8ff"),
+      where("callsign", ">=", term),
+      where("callsign", "<=", term + "\uf8ff"),
       limit(10)
     )
   );
