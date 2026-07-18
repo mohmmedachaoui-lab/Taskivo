@@ -82,7 +82,7 @@ export default function DashboardLayout({
   return (
     <DarkModeV2Provider>
       <DeepModeProvider>
-        <div className="min-h-screen cyber-grid" style={{ background: "#020817" }}>
+        <div className="min-h-screen cyber-grid overflow-x-hidden" style={{ background: "#020817" }}>
           <Sidebar />
           <BottomNav />
           <FloatingActions />
