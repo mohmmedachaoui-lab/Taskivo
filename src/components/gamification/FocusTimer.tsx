@@ -64,7 +64,7 @@ export default function FocusTimer() {
       const totalEarned = xpEarned + bonusXP;
 
       await updateDoc(userRef, { totalXP: increment(totalEarned) });
-      await updateDoc(statsRef, { totalXP: increment(totalEarned) });
+      await updateDoc(statsRef, { totalXP: increment(totalEarned), focusSessions: increment(1) });
       await incrementPublicXP(user.uid, totalEarned);
       await checkAndUnlockAchievements(user.uid);
 
