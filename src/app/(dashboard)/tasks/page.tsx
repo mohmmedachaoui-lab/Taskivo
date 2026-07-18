@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
+import { useTasks } from "@/hooks/useTasks";
 import {
   calculateWinXP,
   calculateMissedTaskPenalty,
@@ -28,17 +29,6 @@ import {
 
 type Difficulty = "easy" | "medium" | "hard" | "extreme";
 
-interface TaskItem {
-  id: string;
-  title: string;
-  difficulty: Difficulty;
-  completed: boolean;
-  failed: boolean;
-  xp: number;
-  deadline: number | null;
-  createdAt: number;
-}
-
 const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; color: string; bg: string }> = {
   easy: { label: "Easy", color: "text-green-500", bg: "bg-green-500/10" },
   medium: { label: "Medium", color: "text-yellow-500", bg: "bg-yellow-500/10" },
@@ -50,7 +40,7 @@ export default function TasksPage() {
   const { user } = useAuth();
   const { profile } = useAppStore();
   const level = profile ? calculateLevel(profile.totalXP) : 1;
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks(user?.uid);
   const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDiff, setNewDiff] = useState<Difficulty>("medium");
@@ -58,70 +48,53 @@ export default function TasksPage() {
   const [penaltyFlash, setPenaltyFlash] = useState<string | null>(null);
   const now = useCurrentTime(60000);
 
-  const checkDeadlines = useCallback(() => {
-    const now = Date.now();
-    setTasks((prev) => {
-      let changed = false;
-      const updated = prev.map((t) => {
-        if (!t.completed && !t.failed && t.deadline && t.deadline < now) {
-          changed = true;
-          setPenaltyFlash(t.id);
-          setTimeout(() => setPenaltyFlash(null), 3000);
-          return { ...t, failed: true };
-        }
-        return t;
-      });
-      return changed ? updated : prev;
-    });
-  }, []);
+  const handleToggle = useCallback(
+    async (id: string) => {
+      const task = tasks.find((t) => t.id === id);
+      if (!task || task.completed || !user || !profile) {
+        await toggleTask(id);
+        return;
+      }
+      await toggleTask(id);
+      await addActivityFeedItem(
+        user.uid,
+        profile.callsign,
+        "task_completed",
+        `Completed "${task.title}" (+${task.xpAwarded} XP)`,
+        task.xpAwarded
+      );
+    },
+    [toggleTask, tasks, user, profile]
+  );
+
+  const handleAdd = useCallback(async () => {
+    if (!newTitle.trim()) return;
+    const xp = calculateWinXP(newDiff, level);
+    const deadline = deadlineDays > 0 ? now + deadlineDays * 24 * 60 * 60 * 1000 : null;
+    await addTask(newTitle.trim(), newDiff, xp, deadline);
+    setNewTitle("");
+    setDeadlineDays(0);
+    setShowAdd(false);
+  }, [newTitle, newDiff, level, deadlineDays, now, addTask]);
+
+  const checkDeadlines = useCallback(async () => {
+    const currentTime = Date.now();
+    const db = (await import("@/lib/firebase")).getFirebaseDb();
+    const { doc, updateDoc } = await import("firebase/firestore");
+    for (const task of tasks) {
+      if (!task.completed && !task.penalty && task.deadline && task.deadline < currentTime) {
+        setPenaltyFlash(task.id);
+        setTimeout(() => setPenaltyFlash(null), 3000);
+        await updateDoc(doc(db, "tasks", task.id), { penalty: true });
+      }
+    }
+  }, [tasks]);
 
   useEffect(() => {
     const interval = setInterval(checkDeadlines, 30000);
     checkDeadlines();
     return () => clearInterval(interval);
   }, [checkDeadlines]);
-
-  const addTask = () => {
-    if (!newTitle.trim()) return;
-    const xp = calculateWinXP(newDiff, level);
-    const deadline = deadlineDays > 0 ? now + deadlineDays * 24 * 60 * 60 * 1000 : null;
-    setTasks((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        title: newTitle,
-        difficulty: newDiff,
-        completed: false,
-        failed: false,
-        xp,
-        deadline,
-        createdAt: Date.now(),
-      },
-    ]);
-    setNewTitle("");
-    setDeadlineDays(0);
-    setShowAdd(false);
-  };
-
-  const toggleTask = async (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
-    const task = tasks.find((t) => t.id === id);
-    if (task && !task.completed && user && profile) {
-      await addActivityFeedItem(
-        user.uid,
-        profile.callsign,
-        "task_completed",
-        `Completed "${task.title}" (+${task.xp} XP)`,
-        task.xp
-      );
-    }
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  };
 
   const getTimeRemaining = (deadline: number) => {
     const diff = deadline - now;
@@ -132,9 +105,9 @@ export default function TasksPage() {
     return `${hours}h`;
   };
 
-  const activeTasks = tasks.filter((t) => !t.completed && !t.failed);
+  const activeTasks = tasks.filter((t) => !t.completed && !t.penalty);
   const completedTasks = tasks.filter((t) => t.completed);
-  const failedTasks = tasks.filter((t) => t.failed);
+  const failedTasks = tasks.filter((t) => t.penalty);
   const totalPenalty = failedTasks.reduce((sum, t) => sum + calculateMissedTaskPenalty(t.difficulty, level), 0);
 
   return (
@@ -183,7 +156,7 @@ export default function TasksPage() {
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="What do you need to do?"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent"
-                  onKeyDown={(e) => e.key === "Enter" && addTask()}
+                  onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 />
                 <div className="flex items-center gap-2">
                   {(["easy", "medium", "hard", "extreme"] as Difficulty[]).map((d) => (
@@ -216,7 +189,7 @@ export default function TasksPage() {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={addTask} disabled={!newTitle.trim()}>
+                  <Button onClick={handleAdd} disabled={!newTitle.trim()}>
                     Add ({calculateWinXP(newDiff, level)} XP)
                   </Button>
                   <Button variant="ghost" onClick={() => setShowAdd(false)}>Cancel</Button>
@@ -243,7 +216,7 @@ export default function TasksPage() {
                   transition={{ delay: i * 0.05 }}
                 >
                   <Card hover className={`flex items-center gap-4 ${penaltyFlash === task.id ? "border-red-500/50 bg-red-500/5" : ""}`}>
-                    <button onClick={() => toggleTask(task.id)}>
+                    <button onClick={() => handleToggle(task.id)}>
                       <Circle className="h-6 w-6 text-gray-300 dark:text-gray-700 hover:text-[#00d4ff] transition-colors" />
                     </button>
                     <div className="flex-1 min-w-0">
@@ -262,7 +235,7 @@ export default function TasksPage() {
                       {DIFFICULTY_CONFIG[task.difficulty].label}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-[#00d4ff] font-medium">
-                      <Zap className="h-3 w-3" />+{task.xp} XP
+                      <Zap className="h-3 w-3" />+{task.xpAwarded} XP
                     </span>
                     <button onClick={() => deleteTask(task.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
@@ -283,7 +256,7 @@ export default function TasksPage() {
           <div className="space-y-2">
             {failedTasks.map((task) => (
               <Card key={task.id} className="flex items-center gap-4 opacity-60 border-red-500/20">
-                <X className="h-5 w-5 text-red-400" />
+                <XIcon className="h-5 w-5 text-red-400" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-400 line-through truncate">{task.title}</p>
                 </div>
@@ -312,7 +285,7 @@ export default function TasksPage() {
                   <p className="font-medium text-gray-400 line-through truncate">{task.title}</p>
                 </div>
                 <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-                  <Zap className="h-3 w-3" />+{task.xp} XP
+                  <Zap className="h-3 w-3" />+{task.xpAwarded} XP
                 </span>
                 <button onClick={() => deleteTask(task.id)} className="text-gray-500 hover:text-red-400 transition-colors">
                   <Trash2 className="h-4 w-4" />
@@ -323,7 +296,7 @@ export default function TasksPage() {
         </div>
       )}
 
-      {tasks.length === 0 && (
+      {tasks.length === 0 && !loading && (
         <EmptyState
           icon={<Flame className="h-8 w-8" strokeWidth={2.5} />}
           title="No active missions"
@@ -337,7 +310,7 @@ export default function TasksPage() {
   );
 }
 
-function X(props: { className?: string }) {
+function XIcon(props: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
       <path d="M18 6 6 18" /><path d="m6 6 12 12" />

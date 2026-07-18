@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
+import { generateUniqueFriendCode } from "@/lib/callsign";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { Terminal, ArrowRight } from "lucide-react";
@@ -42,12 +43,16 @@ export default function OnboardingPage() {
         return;
       }
 
+      const { friendCode, friendSuffix } = await generateUniqueFriendCode(callsign);
+
       await setDoc(userRef, {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
         callsign: callsign,
+        friendCode,
+        friendSuffix,
         rank: "Novice",
         level: 1,
         totalXP: 0,
