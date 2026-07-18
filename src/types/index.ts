@@ -132,3 +132,40 @@ export interface ActivityFeedItem {
 }
 
 export type Theme = "light" | "dark";
+
+export interface WeeklyGoalTask {
+  id: string;
+  title: string;
+  targetCount: number;
+  currentCount: number;
+  completed: boolean;
+}
+
+export interface WeeklyGoal {
+  id: string;
+  uid: string;
+  title: string;
+  weekStart: number;
+  weekEnd: number;
+  tasks: WeeklyGoalTask[];
+  completed: boolean;
+  createdAt: number;
+}
+
+export interface CompanionNudge {
+  id: string;
+  type: "encouragement" | "break_reminder" | "focus_tip" | "milestone" | "streak_protection";
+  message: string;
+  icon: string;
+  priority: "low" | "medium" | "high";
+  dismissed: boolean;
+  createdAt: number;
+}
+
+export interface CompanionState {
+  active: boolean;
+  currentSessionStart: number | null;
+  nudges: CompanionNudge[];
+  sessionsToday: number;
+  totalFocusMinutes: number;
+}

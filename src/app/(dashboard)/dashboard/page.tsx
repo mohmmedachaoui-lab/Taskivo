@@ -16,6 +16,7 @@ import ParticleBurst from "@/components/ui/ParticleBurst";
 import HeroSection from "@/components/dashboard/HeroSection";
 import WeeklyActivity from "@/components/dashboard/WeeklyActivity";
 import FeaturedPreview from "@/components/dashboard/FeaturedPreview";
+import GoalBentoCard from "@/components/dashboard/GoalBentoCard";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -152,6 +153,11 @@ export default function DashboardPage() {
             icon={Target}
             color="#00d4ff"
           />
+        </BentoCard>
+
+        {/* ===== WEEKLY GOAL + COMPANION ===== */}
+        <BentoCard variant="cyan" delay={0.22}>
+          <GoalBentoCard />
         </BentoCard>
 
         {/* ===== ACTIVE TASKS — yellow module ===== */}

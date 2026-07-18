@@ -1,4 +1,4 @@
-import { UserStats, UserProfile, ActivityFeedItem, Duel } from "@/types";
+import { UserStats, UserProfile, ActivityFeedItem, Duel, WeeklyGoal } from "@/types";
 import { calculateLevel } from "@/lib/xp-engine";
 
 export interface ProductivityInsight {
@@ -174,5 +174,30 @@ export function getDailyRecommendation(
     description: `Day ${streak} streak active. Stay consistent to maintain your ${insight.label} status.`,
     priority: "low",
     icon: "Target",
+  };
+}
+
+export function calculateGoalProgress(goal: WeeklyGoal): {
+  percentage: number;
+  completedTasks: number;
+  totalTasks: number;
+  tasksDone: number;
+  tasksTotal: number;
+} {
+  if (!goal.tasks || goal.tasks.length === 0) {
+    return { percentage: 0, completedTasks: 0, totalTasks: 0, tasksDone: 0, tasksTotal: 0 };
+  }
+  const completedTasks = goal.tasks.filter((t) => t.completed).length;
+  const totalTarget = goal.tasks.reduce((s, t) => s + t.targetCount, 0);
+  const currentTotal = goal.tasks.reduce(
+    (s, t) => s + Math.min(t.currentCount, t.targetCount),
+    0
+  );
+  return {
+    percentage: totalTarget > 0 ? Math.round((currentTotal / totalTarget) * 100) : 0,
+    completedTasks,
+    totalTasks: goal.tasks.length,
+    tasksDone: currentTotal,
+    tasksTotal: totalTarget,
   };
 }

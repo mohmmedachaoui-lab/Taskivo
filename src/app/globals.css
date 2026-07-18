@@ -667,3 +667,22 @@ select {
     linear-gradient(90deg, rgba(0, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 30px 30px;
 }
+
+/* ===== COMPANION CHAT BUBBLE ===== */
+.companion-chat {
+  transform-origin: bottom right;
+}
+
+.companion-chat::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  background: rgba(5, 12, 25, 0.95);
+  border-right: 1px solid rgba(0, 212, 255, 0.15);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+  transform: rotate(45deg);
+  z-index: -1;
+}
