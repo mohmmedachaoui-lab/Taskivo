@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, Bot, ArrowRight } from "lucide-react";
+import { Bot, ArrowRight, Sparkles } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 export default function AIAgentPage() {
@@ -17,52 +17,39 @@ export default function AIAgentPage() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
-          className="h-24 w-24 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mx-auto mb-8 shadow-xl shadow-cyan-400/25"
+          className="h-20 w-20 rounded-xl bg-gradient-to-br from-[#00d4ff] to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#00d4ff]/20"
         >
-          <Bot className="h-12 w-12 text-white" />
+          <Bot className="h-10 w-10 text-white" />
         </motion.div>
 
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-3xl font-bold text-white mb-3 font-[family-name:var(--font-mono)]">
           AI Agent
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-          Your personal AI productivity assistant is being crafted with care.
-          It will help you optimize your workflow, suggest task strategies, and
-          boost your XP gains.
+        <p className="text-xs text-gray-500 mb-6 font-[family-name:var(--font-mono)] uppercase tracking-widest">
+          Coming Soon
         </p>
 
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <span className="px-3 py-1 rounded-full bg-cyan-100 text-cyan-500 dark:bg-cyan-900/50 dark:text-cyan-300 text-sm font-medium">
-            Coming Soon
-          </span>
-        </div>
-
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 text-left space-y-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-cyan-400" />
+        <div className="glass neon-border rounded-xl p-6 text-left space-y-3 corner-accent">
+          <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-widest flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[#00d4ff]" />
             What to expect
           </h3>
-          <ul className="space-y-3">
-            {[
-              "Smart task prioritization based on your XP potential",
-              "Personalized productivity insights and recommendations",
-              "Natural language task creation and management",
-              "Automated guild competition strategies",
-            ].map((feature, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400"
-              >
-                <ArrowRight className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+          {[
+            "Smart task prioritization based on your XP potential",
+            "Personalized productivity insights",
+            "Natural language task creation",
+            "Automated guild competition strategies",
+          ].map((feature, i) => (
+            <div key={i} className="flex items-start gap-2 text-xs text-gray-400">
+              <ArrowRight className="h-3 w-3 text-[#00d4ff] mt-0.5 shrink-0" />
+              {feature}
+            </div>
+          ))}
         </div>
 
-        <Button variant="secondary" className="mt-8 gap-2" disabled>
-          <Sparkles className="h-4 w-4" />
-          Notify me when ready
+        <Button variant="neon" className="mt-6" disabled>
+          <Sparkles className="h-3.5 w-3.5 mr-2" />
+          NOTIFY ME
         </Button>
       </motion.div>
     </div>

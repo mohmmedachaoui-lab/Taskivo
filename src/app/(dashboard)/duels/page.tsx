@@ -121,16 +121,11 @@ export default function DuelsPage() {
   const losses = completedDuels.filter((d) => d.winnerId && d.winnerId !== user?.uid).length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <Swords className="h-8 w-8 text-red-500" />
-            War Room
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            High-stakes duels — bet XP, prove your worth
-          </p>
+          <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-mono)] tracking-tight"><span className="text-[#00d4ff]">&gt;</span> War Room</h1>
+          <p className="text-gray-500 mt-0.5 text-xs font-[family-name:var(--font-mono)] uppercase tracking-widest">High-stakes duels — bet XP, prove your worth</p>
         </div>
         <Button onClick={() => setShowChallenge(!showChallenge)} className="gap-2">
           <Swords className="h-4 w-4" />

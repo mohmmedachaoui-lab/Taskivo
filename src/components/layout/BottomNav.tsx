@@ -20,15 +20,25 @@ const items = [
   { href: "/duels", label: "Duels", icon: Swords },
   { href: "/focus", label: "Focus", icon: Timer },
   { href: "/stats", label: "Stats", icon: BarChart3 },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/settings", label: "Sys", icon: Settings },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/80 backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80 lg:hidden">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      style={{
+        background: "rgba(2, 8, 23, 0.95)",
+        backdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(0, 212, 255, 0.1)",
+      }}
+    >
+      {/* Top neon line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff]/40 to-transparent" />
+
+      <div className="flex items-center justify-around px-1 py-2">
         {items.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -36,22 +46,21 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={clsx(
-                "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-medium transition-all duration-200",
+                "flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[9px] font-medium transition-all duration-200 font-[family-name:var(--font-mono)]",
                 isActive
-                  ? "text-blue-500"
-                  : "text-gray-400 dark:text-gray-500"
+                  ? "text-[#00d4ff]"
+                  : "text-gray-600"
               )}
             >
               <div
                 className={clsx(
-                  "p-1.5 rounded-xl transition-all duration-200",
-                  isActive &&
-                    "bg-blue-500/10 shadow-[0_0_12px_rgba(59,130,246,0.3)]"
+                  "p-1.5 rounded-lg transition-all duration-200",
+                  isActive && "bg-[#00d4ff]/10 shadow-[0_0_10px_rgba(0,212,255,0.2)]"
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-4 w-4" />
               </div>
-              <span>{item.label}</span>
+              <span className="uppercase tracking-wider">{item.label}</span>
             </Link>
           );
         })}

@@ -61,15 +61,10 @@ export default function AchievementsPage() {
   const completionPercent = Math.round((totalUnlocked / totalAchievements) * 100);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-yellow-400" />
-          Achievements
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          {totalUnlocked} / {totalAchievements} unlocked — {completionPercent}% complete
-        </p>
+        <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-mono)] tracking-tight"><span className="text-[#00d4ff]">&gt;</span> Achievements</h1>
+        <p className="text-gray-500 mt-0.5 text-xs font-[family-name:var(--font-mono)] uppercase tracking-widest">{totalUnlocked} / {totalAchievements} unlocked — {completionPercent}% complete</p>
       </div>
 
       <Card className="overflow-hidden">

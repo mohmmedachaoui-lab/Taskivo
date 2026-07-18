@@ -15,7 +15,7 @@ export default function LevelRing({
   xpMax,
   size = 120,
 }: LevelRingProps) {
-  const radius = (size - 12) / 2;
+  const radius = (size - 10) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (xpProgress / xpMax) * circumference;
 
@@ -28,8 +28,8 @@ export default function LevelRing({
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth="8"
-          className="text-gray-200 dark:text-gray-800"
+          strokeWidth="4"
+          className="text-gray-800"
         />
         <motion.circle
           cx={size / 2}
@@ -37,7 +37,7 @@ export default function LevelRing({
           r={radius}
           fill="none"
           stroke="url(#levelGradient)"
-          strokeWidth="8"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
@@ -46,17 +46,26 @@ export default function LevelRing({
         />
         <defs>
           <linearGradient id="levelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#00d4ff" />
+            <stop offset="0%" stopColor="#00d4ff" />
+            <stop offset="100%" stopColor="#3b82f6" />
           </linearGradient>
         </defs>
       </svg>
+      {/* Glow behind */}
+      <div
+        className="absolute rounded-full opacity-20 blur-xl"
+        style={{
+          width: size * 0.6,
+          height: size * 0.6,
+          background: "radial-gradient(circle, #00d4ff, transparent)",
+        }}
+      />
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-bold text-gray-900 dark:text-white">
+        <span className="text-2xl font-bold text-white font-[family-name:var(--font-mono)]">
           {level}
         </span>
-        <span className="text-[10px] text-gray-500 dark:text-gray-400">
-          LEVEL
+        <span className="text-[8px] text-gray-500 font-[family-name:var(--font-mono)] uppercase tracking-widest">
+          LVL
         </span>
       </div>
     </div>

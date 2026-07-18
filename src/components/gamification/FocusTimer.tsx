@@ -4,25 +4,25 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, RotateCcw, Coffee, Zap, Flame, Trophy } from "lucide-react";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { calculateWinXP } from "@/lib/xp-engine";
+import { addActivityFeedItem } from "@/lib/social";
 
 type Mode = "work" | "break";
 
 const MODES = {
-  work: { duration: 25 * 60, label: "Deep Work", color: "from-blue-500 to-cyan-400" },
-  break: { duration: 5 * 60, label: "Break", color: "from-green-500 to-emerald-600" },
+  work: { duration: 25 * 60, label: "DEEP WORK", color: "from-[#00d4ff] to-blue-600" },
+  break: { duration: 5 * 60, label: "BREAK", color: "from-emerald-500 to-green-600" },
 };
 
 const XP_PER_SESSION = 50;
 
 export default function FocusTimer() {
   const { user } = useAuth();
-  const { profile, setProfile, setStats } = useAppStore();
+  const { profile, setProfile } = useAppStore();
   const [mode, setMode] = useState<Mode>("work");
   const [timeLeft, setTimeLeft] = useState(MODES.work.duration);
   const [isRunning, setIsRunning] = useState(false);
@@ -62,18 +62,20 @@ export default function FocusTimer() {
       const bonusXP = calculateWinXP("medium", currentLevel);
       const totalEarned = xpEarned + bonusXP;
 
-      await updateDoc(userRef, {
-        totalXP: increment(totalEarned),
-      });
-
-      await updateDoc(statsRef, {
-        totalXP: increment(totalEarned),
-      });
+      await updateDoc(userRef, { totalXP: increment(totalEarned) });
+      await updateDoc(statsRef, { totalXP: increment(totalEarned) });
 
       setTotalXP((prev) => prev + totalEarned);
 
       if (profile) {
         setProfile({ ...profile, totalXP: profile.totalXP + totalEarned });
+        await addActivityFeedItem(
+          user.uid,
+          profile.callsign,
+          "task_completed",
+          `Completed a focus session (+${totalEarned} XP)`,
+          totalEarned
+        );
       }
     } catch (err) {
       console.error("Failed to save XP:", err);
@@ -103,65 +105,61 @@ export default function FocusTimer() {
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const radius = 100;
+  const radius = 110;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Focus Mode
+        <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-mono)] tracking-tight">
+          <span className="text-[#00d4ff]">&gt;</span> Focus Mode
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Pomodoro sessions that earn you XP
+        <p className="text-gray-500 mt-0.5 text-xs font-[family-name:var(--font-mono)] uppercase tracking-widest">
+          Pomodoro sessions that earn XP
         </p>
       </div>
 
-      <Card className="flex flex-col items-center py-12">
-        <div className="flex gap-2 mb-10">
-          <button
-            onClick={() => switchMode("work")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              mode === "work"
-                ? "bg-blue-500/10 text-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.2)]"
-                : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            <Zap className="h-4 w-4" />
-            Work
-          </button>
-          <button
-            onClick={() => switchMode("break")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              mode === "break"
-                ? "bg-green-500/10 text-green-500 shadow-[0_0_12px_rgba(34,197,94,0.2)]"
-                : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            <Coffee className="h-4 w-4" />
-            Break
-          </button>
+      <div className="glass neon-border rounded-xl flex flex-col items-center py-10 corner-accent">
+        {/* Mode Switcher */}
+        <div className="flex gap-1 mb-10 p-1 rounded-lg bg-white/[0.02] border border-gray-800">
+          {(["work", "break"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-xs font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-300 ${
+                mode === m
+                  ? m === "work"
+                    ? "bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30 glow-neon"
+                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                  : "text-gray-600 hover:text-gray-400 border border-transparent"
+              }`}
+            >
+              {m === "work" ? <Zap className="h-3.5 w-3.5" /> : <Coffee className="h-3.5 w-3.5" />}
+              {MODES[m].label}
+            </button>
+          ))}
         </div>
 
+        {/* Timer Ring */}
         <div className="relative mb-10">
-          <svg width={240} height={240} className="-rotate-90">
+          <svg width={260} height={260} className="-rotate-90">
             <circle
-              cx={120}
-              cy={120}
+              cx={130}
+              cy={130}
               r={radius}
               fill="none"
               stroke="currentColor"
-              strokeWidth="6"
-              className="text-gray-200 dark:text-gray-800"
+              strokeWidth="3"
+              className="text-gray-800/50"
             />
             <motion.circle
-              cx={120}
-              cy={120}
+              cx={130}
+              cy={130}
               r={radius}
               fill="none"
               stroke="url(#focusGradient)"
-              strokeWidth="6"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={circumference}
               animate={{ strokeDashoffset }}
@@ -169,88 +167,89 @@ export default function FocusTimer() {
             />
             <defs>
               <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
-                <stop offset="100%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
+                <stop offset="0%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
+                <stop offset="100%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
               </linearGradient>
             </defs>
           </svg>
+          {/* Glow */}
+          <div
+            className="absolute inset-0 rounded-full opacity-10 blur-2xl"
+            style={{
+              background: `radial-gradient(circle, ${mode === "work" ? "#00d4ff" : "#10b981"}, transparent)`,
+            }}
+          />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-5xl font-bold tabular-nums text-gray-900 dark:text-white">
+            <span className="text-5xl font-bold tabular-nums text-white font-[family-name:var(--font-mono)] tracking-tighter">
               {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
             </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <span className="text-[10px] text-gray-500 font-[family-name:var(--font-mono)] uppercase tracking-widest mt-1">
               {MODES[mode].label}
             </span>
           </div>
         </div>
 
+        {/* Controls */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="lg" onClick={reset} className="rounded-full p-3">
-            <RotateCcw className="h-5 w-5" />
+            <RotateCcw className="h-4 w-4" />
           </Button>
           <Button
             size="lg"
             onClick={toggle}
-            className={`rounded-full px-8 py-3 bg-gradient-to-r ${MODES[mode].color} text-white shadow-lg`}
+            variant="neon"
+            className="rounded-full px-10 py-3"
           >
-            {isRunning ? <Pause className="h-5 w-5 mr-2" /> : <Play className="h-5 w-5 mr-2" />}
-            {isRunning ? "Pause" : "Start"}
+            {isRunning ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+            {isRunning ? "PAUSE" : "START"}
           </Button>
         </div>
-      </Card>
-
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="text-center">
-          <div className="inline-flex p-2 rounded-xl bg-blue-500/10 mb-2">
-            <Flame className="h-5 w-5 text-blue-500" />
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{sessions}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Sessions</p>
-        </Card>
-        <Card className="text-center">
-          <div className="inline-flex p-2 rounded-xl bg-cyan-400/10 mb-2">
-            <Trophy className="h-5 w-5 text-cyan-400" />
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{sessions * 25}m</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Focus Time</p>
-        </Card>
-        <Card className="text-center">
-          <div className="inline-flex p-2 rounded-xl bg-green-500/10 mb-2">
-            <Zap className="h-5 w-5 text-green-500" />
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">+{totalXP}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">XP Earned</p>
-        </Card>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { icon: Flame, value: sessions, label: "SESSIONS", color: "text-[#00d4ff]" },
+          { icon: Trophy, value: `${sessions * 25}m`, label: "FOCUS TIME", color: "text-emerald-400" },
+          { icon: Zap, value: `+${totalXP}`, label: "XP EARNED", color: "text-yellow-400" },
+        ].map((stat, i) => (
+          <div key={stat.label} className="glass neon-border rounded-xl text-center p-4">
+            <stat.icon className={`h-4 w-4 ${stat.color} mx-auto mb-2`} />
+            <p className="text-xl font-bold text-white font-[family-name:var(--font-mono)]">{stat.value}</p>
+            <p className="text-[9px] text-gray-600 font-[family-name:var(--font-mono)] uppercase tracking-widest mt-1">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Session Complete Modal */}
       {showComplete && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
         >
-          <Card className="max-w-sm w-full mx-4 text-center py-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
-              className="text-6xl mb-4"
-            >
-              🎯
-            </motion.div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Session Complete!
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", delay: 0.1 }}
+            className="glass neon-border rounded-xl max-w-sm w-full mx-4 text-center py-8 px-6 corner-accent"
+          >
+            <div className="text-5xl mb-4">🎯</div>
+            <h2 className="text-xl font-bold text-white font-[family-name:var(--font-mono)] mb-2">
+              SESSION COMPLETE
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
-              +{XP_PER_SESSION} base XP earned
+            <p className="text-xs text-gray-500 font-[family-name:var(--font-mono)]">
+              +{XP_PER_SESSION} BASE XP
             </p>
-            <p className="text-sm text-green-500 font-medium mb-6">
-              🔥 {streak} session streak!
+            <p className="text-xs text-[#00d4ff] font-[family-name:var(--font-mono)] mt-1">
+              🔥 {streak} SESSION STREAK
             </p>
-            <Button onClick={() => { setShowComplete(false); switchMode("break"); }}>
-              Start Break
-            </Button>
-          </Card>
+            <div className="mt-6">
+              <Button onClick={() => { setShowComplete(false); switchMode("break"); }} variant="neon">
+                START BREAK
+              </Button>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </div>
