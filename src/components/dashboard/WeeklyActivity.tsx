@@ -1,6 +1,5 @@
 "use client";
 
-import Card from "@/components/ui/Card";
 import { BarChart3 } from "lucide-react";
 
 export default function WeeklyActivity() {
@@ -9,18 +8,18 @@ export default function WeeklyActivity() {
   const max = Math.max(...data, 1);
 
   return (
-    <Card>
+    <div className="p-5 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="h-4 w-4 text-[#00d4ff]" />
-        <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-widest">
+        <BarChart3 className="h-4 w-4 text-[#00d4ff]" strokeWidth={2.5} />
+        <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
           Weekly Activity
         </h3>
       </div>
-      <div className="flex items-end gap-2 h-40">
+      <div className="flex-1 flex items-end gap-2 min-h-0">
         {days.map((day, i) => {
           const height = data[i] > 0 ? (data[i] / max) * 100 : 2;
           return (
-            <div key={day} className="flex-1 flex flex-col items-center gap-2">
+            <div key={day} className="flex-1 flex flex-col items-center gap-2 h-full">
               <div className="w-full flex-1 flex items-end">
                 <div
                   className="w-full rounded-t-md transition-all duration-500 relative group"
@@ -44,6 +43,6 @@ export default function WeeklyActivity() {
           );
         })}
       </div>
-    </Card>
+    </div>
   );
 }
