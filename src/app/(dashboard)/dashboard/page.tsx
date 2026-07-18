@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -8,9 +8,12 @@ import {
   getRankTitle,
   calculateLevel,
 } from "@/lib/xp-engine";
-import { getFriends, getActivityFeed, getUserDuels, getUserGuild, getGuildMembers } from "@/lib/social";
-import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
+import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
+import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
+import { useFriends } from "@/hooks/useFriends";
+import { getUserGuild, getGuildMembers } from "@/lib/social";
+import { useEffect, useCallback } from "react";
 import HeroSection from "@/components/dashboard/HeroSection";
 import Shelf from "@/components/ui/Shelf";
 import TaskShelfCard from "@/components/dashboard/TaskShelfCard";
@@ -37,7 +40,7 @@ import {
   Brain,
   Shield,
 } from "lucide-react";
-import { ActivityFeedItem, Duel, Guild, Task } from "@/types";
+import { Duel, Guild, ActivityFeedItem } from "@/types";
 
 const FEED_ICONS: Record<string, React.ReactNode> = {
   task_completed: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />,
@@ -49,54 +52,21 @@ const FEED_ICONS: Record<string, React.ReactNode> = {
   guild_join: <Activity className="h-3.5 w-3.5 text-blue-400" />,
 };
 
-interface ShelfTask {
-  id: string;
-  title: string;
-  category: string;
-  total: number;
-  completed: number;
-  urgent: boolean;
-}
-
 export default function DashboardPage() {
   const { user } = useAuth();
   const { profile, stats } = useAppStore();
   const { isDeep, toggleDeep } = useDeepMode();
-  const [feed, setFeed] = useState<ActivityFeedItem[]>([]);
-  const [tasks, setTasks] = useState<ShelfTask[]>([]);
-  const [duels, setDuels] = useState<Duel[]>([]);
-  const [guild, setGuild] = useState<Guild | null>(null);
-  const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number }[]>([]);
   const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild" | "stat"; data: any } | null>(null);
 
-  const level = profile ? calculateLevel(profile.totalXP) : 1;
-  const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
-  const rank = getRankTitle(level);
-  const tasksDone = stats?.tasksCompleted ?? 0;
-  const dayStreak = stats?.currentStreak ?? 0;
-  const totalXP = profile?.totalXP ?? 0;
-  const xpLost = (stats as any)?.xpLost ?? 0;
+  // Real-time data
+  const { friendUids } = useFriends(user?.uid);
+  const { tasks } = useRealtimeTasks(user?.uid);
+  const { activeDuels, pendingDuels } = useRealtimeDuels(user?.uid);
+  const { feed } = useRealtimeFeed(user?.uid, friendUids);
 
-  const loadFeed = useCallback(async () => {
-    if (!user) return;
-    try {
-      const friends = await getFriends(user.uid);
-      const items = await getActivityFeed(friends, user.uid);
-      setFeed(items);
-    } catch (err) {
-      console.error("Failed to load feed:", err);
-    }
-  }, [user]);
-
-  const loadDuels = useCallback(async () => {
-    if (!user) return;
-    try {
-      const d = await getUserDuels(user.uid);
-      setDuels(d.filter((duel) => duel.status === "pending" || duel.status === "active"));
-    } catch (err) {
-      console.error("Failed to load duels:", err);
-    }
-  }, [user]);
+  // Non-realtime (guild — expensive query)
+  const [guild, setGuild] = useState<Guild | null>(null);
+  const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number }[]>([]);
 
   const loadGuild = useCallback(async () => {
     if (!user) return;
@@ -112,45 +82,19 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  // Live tasks listener from Firestore
   useEffect(() => {
-    if (!user) return;
-    const db = getFirebaseDb();
-    const q = query(
-      collection(db, "tasks"),
-      where("uid", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(20)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      const items: ShelfTask[] = snap.docs.map((d) => {
-        const data = d.data() as any;
-        const subtasks: any[] = data.subtasks ?? [];
-        const done = subtasks.filter((s: any) => s.done).length;
-        return {
-          id: d.id,
-          title: data.title ?? "Untitled",
-          category: data.category ?? data.difficulty ?? "task",
-          total: subtasks.length || 1,
-          completed: done,
-          urgent: data.urgent ?? false,
-        };
-      });
-      setTasks(items);
-    });
-    return () => unsub();
-  }, [user]);
-
-  useEffect(() => {
-    loadFeed();
-    loadDuels();
     loadGuild();
-    const interval = setInterval(() => {
-      loadFeed();
-      loadDuels();
-    }, 15000);
+    const interval = setInterval(loadGuild, 30000);
     return () => clearInterval(interval);
-  }, [loadFeed, loadDuels, loadGuild]);
+  }, [loadGuild]);
+
+  const level = profile ? calculateLevel(profile.totalXP) : 1;
+  const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
+  const rank = getRankTitle(level);
+  const tasksDone = stats?.tasksCompleted ?? 0;
+  const dayStreak = stats?.currentStreak ?? 0;
+  const totalXP = profile?.totalXP ?? 0;
+  const xpLost = (stats as any)?.xpLost ?? 0;
 
   const getRelativeTime = (ts: number) => {
     const diff = Date.now() - ts;
@@ -163,8 +107,8 @@ export default function DashboardPage() {
     return `${days}d`;
   };
 
+  const allDuels = [...activeDuels, ...pendingDuels];
   const activeTasks = tasks.filter((t) => t.completed < t.total);
-  const completedTasks = tasks.filter((t) => t.completed >= t.total);
 
   return (
     <div className="space-y-8 -mx-4 lg:-mx-6 -mt-4 lg:-mt-6">
@@ -222,7 +166,7 @@ export default function DashboardPage() {
         </Shelf>
       </div>
 
-      {/* ACTIVE TASKS SHELF */}
+      {/* ACTIVE TASKS SHELF — Real-time */}
       {activeTasks.length > 0 && (
         <div className="px-4 lg:px-6">
           <Shelf title="Active Missions" icon={<Target className="h-3.5 w-3.5" />} delay={0.15}>
@@ -247,11 +191,11 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* WAR ROOM SHELF */}
-      {duels.length > 0 && (
+      {/* WAR ROOM SHELF — Real-time */}
+      {allDuels.length > 0 && (
         <div className="px-4 lg:px-6">
           <Shelf title="War Room" icon={<Swords className="h-3.5 w-3.5" />} delay={0.2}>
-            {duels.map((duel, i) => (
+            {allDuels.map((duel, i) => (
               <div
                 key={duel.id}
                 onMouseEnter={() => setPreview({ type: "duel", data: duel })}
@@ -315,7 +259,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ACTIVITY FEED SHELF */}
+      {/* ACTIVITY FEED SHELF — Real-time */}
       {feed.length > 0 && (
         <div className="px-4 lg:px-6">
           <Shelf title="Live Feed" icon={<Activity className="h-3.5 w-3.5" />} delay={0.3}>

@@ -3,19 +3,35 @@
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel, calculateXPProgress, getRankTitle } from "@/lib/xp-engine";
+import { calculateProductivityScore, getDailyRecommendation } from "@/lib/analytics";
 import LevelRing from "@/components/gamification/LevelRing";
 import { motion } from "framer-motion";
-import { Flame, Zap, Trophy, Swords, ChevronRight } from "lucide-react";
+import { Flame, Zap, Trophy, Swords, Clock, TrendingUp, AlertTriangle, Target, Crown, Timer, ChevronRight } from "lucide-react";
+import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
+import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
+import { useFriends } from "@/hooks/useFriends";
+
+const ICON_MAP: Record<string, typeof Zap> = {
+  Flame, Clock, Swords, Timer, TrendingUp, AlertTriangle, Target, Crown, Trophy, Zap,
+};
 
 export default function HeroSection() {
   const { user } = useAuth();
   const { profile, stats } = useAppStore();
+  const { friendUids } = useFriends(user?.uid);
+  const { activeDuels } = useRealtimeDuels(user?.uid);
+  const { feed } = useRealtimeFeed(user?.uid, friendUids);
+
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const xpProgress = profile ? calculateXPProgress(profile.totalXP) : 0;
   const rank = getRankTitle(level);
   const streak = stats?.currentStreak ?? 0;
   const tasksDone = stats?.tasksCompleted ?? 0;
   const duelsWon = (stats as any)?.duelsWon ?? 0;
+
+  const insight = calculateProductivityScore(profile, stats, feed, activeDuels);
+  const recommendation = getDailyRecommendation(insight, profile, stats);
+  const RecIcon = ICON_MAP[recommendation.icon] || Target;
 
   return (
     <motion.div
@@ -67,16 +83,53 @@ export default function HeroSection() {
               <span className="text-[10px] font-[family-name:var(--font-mono)] text-gray-600 uppercase tracking-[0.2em]">
                 LVL {level}
               </span>
+              {/* Productivity Score Badge */}
+              {insight.score > 0 && (
+                <span
+                  className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full"
+                  style={{
+                    color: insight.color,
+                    background: `${insight.color}10`,
+                    border: `1px solid ${insight.color}25`,
+                  }}
+                >
+                  {insight.label} · {insight.score}
+                </span>
+              )}
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-1 font-[family-name:var(--font-mono)]">
               {profile?.callsign ?? "Agent"}
             </h1>
-            <p className="text-sm text-gray-500 mb-5 max-w-md">
+            <p className="text-sm text-gray-500 mb-4 max-w-md">
               {tasksDone > 0
                 ? `${tasksDone} tasks completed${streak > 0 ? ` · ${streak}d streak` : ""}`
                 : "Start your first task to begin your mission."}
             </p>
+
+            {/* Daily Recommendation */}
+            {insight.score > 0 && (
+              <div
+                className="flex items-center gap-3 mb-5 px-3.5 py-2.5 rounded-xl max-w-md"
+                style={{
+                  background: "rgba(15, 20, 35, 0.8)",
+                  border: "1px solid rgba(0, 212, 255, 0.1)",
+                }}
+              >
+                <div
+                  className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${insight.color}12` }}
+                >
+                  <RecIcon className="h-4 w-4" style={{ color: insight.color }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold font-[family-name:var(--font-mono)] uppercase tracking-wider" style={{ color: insight.color }}>
+                    {recommendation.title}
+                  </p>
+                  <p className="text-[11px] text-gray-500 truncate">{recommendation.description}</p>
+                </div>
+              </div>
+            )}
 
             {/* Quick Stats */}
             <div className="flex items-center gap-6">

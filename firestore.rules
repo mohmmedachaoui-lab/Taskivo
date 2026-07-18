@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========== USERS ==========
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // ========== STATS ==========
+    match /stats/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // ========== TASKS ==========
+    match /tasks/{taskId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // ========== NOTIFICATIONS ==========
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ========== ACTIVITY FEED ==========
+    match /activityFeed/{itemId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ========== FRIEND REQUESTS ==========
+    match /friendRequests/{requestId} {
+      allow read: if request.auth != null && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+      allow delete: if false;
+    }
+
+    // ========== FRIENDSHIPS ==========
+    match /friendships/{friendshipId} {
+      allow read: if request.auth != null && (
+        resource.data.uid1 == request.auth.uid ||
+        resource.data.uid2 == request.auth.uid
+      );
+      allow create: if request.auth != null;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ========== DUELS ==========
+    match /duels/{duelId} {
+      allow read: if request.auth != null && (
+        resource.data.challengerId == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid
+      );
+      allow create: if request.auth != null && request.resource.data.challengerId == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.challengerId == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid
+      );
+      allow delete: if false;
+    }
+
+    // ========== GUILDS ==========
+    match /guilds/{guildId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.members
+      );
+      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+
+    // ========== GUILD NEWS ==========
+    match /guildNews/{newsId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ========== GLOBAL LEADERBOARD (read-only for all authenticated) ==========
+    // users collection already covered above — leaderboard queries use users collection
+  }
+}

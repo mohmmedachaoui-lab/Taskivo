@@ -1,15 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  getNotifications,
-  markNotificationRead,
-  markAllNotificationsRead,
-} from "@/lib/social";
-import { Notification } from "@/types";
-import { Bell, Swords, UserPlus, Trophy, Check, Trophy as TrophyIcon, Zap, AlertTriangle } from "lucide-react";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { Bell, Swords, UserPlus, Trophy, Check, Zap, AlertTriangle } from "lucide-react";
 import { clsx } from "clsx";
 
 const ICON_MAP: Record<string, typeof Bell> = {
@@ -18,7 +13,7 @@ const ICON_MAP: Record<string, typeof Bell> = {
   duel_lost: Swords,
   friend_request: UserPlus,
   friend_accepted: Check,
-  achievement: TrophyIcon,
+  achievement: Trophy,
   xp_penalty: AlertTriangle,
   stake_won: Zap,
   stake_lost: AlertTriangle,
@@ -40,32 +35,8 @@ const COLOR_MAP: Record<string, string> = {
 
 export default function Notifications() {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications, unreadCount, markRead, markAllRead } = useRealtimeNotifications(user?.uid);
   const [showPanel, setShowPanel] = useState(false);
-  const unread = notifications.filter((n) => !n.read).length;
-
-  const load = useCallback(async () => {
-    if (!user) return;
-    const data = await getNotifications(user.uid);
-    setNotifications(data);
-  }, [user]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const handleReadAll = async () => {
-    if (!user) return;
-    await markAllNotificationsRead(user.uid);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const handleReadOne = async (id: string) => {
-    await markNotificationRead(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
 
   const timeAgo = (ts: number) => {
     const diff = Date.now() - ts;
@@ -85,10 +56,15 @@ export default function Notifications() {
         className="relative p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-gray-800 hover:border-[#00d4ff]/20 transition-all duration-200"
       >
         <Bell className="h-3.5 w-3.5 text-gray-500" />
-        {unread > 0 && (
-          <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 text-[8px] text-white flex items-center justify-center font-bold font-[family-name:var(--font-mono)]">
-            {unread}
-          </span>
+        {unreadCount > 0 && (
+          <motion.span
+            key={unreadCount}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 text-[8px] text-white flex items-center justify-center font-bold font-[family-name:var(--font-mono)]"
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </motion.span>
         )}
       </button>
 
@@ -104,9 +80,9 @@ export default function Notifications() {
               <h3 className="text-xs font-semibold text-gray-400 font-[family-name:var(--font-mono)] uppercase tracking-widest">
                 Alerts
               </h3>
-              {unread > 0 && (
+              {unreadCount > 0 && (
                 <button
-                  onClick={handleReadAll}
+                  onClick={markAllRead}
                   className="text-[10px] text-[#00d4ff] hover:text-[#00a8cc] font-[family-name:var(--font-mono)]"
                 >
                   READ ALL
@@ -127,7 +103,7 @@ export default function Notifications() {
                   return (
                     <button
                       key={n.id}
-                      onClick={() => handleReadOne(n.id)}
+                      onClick={() => markRead(n.id)}
                       className={clsx(
                         "flex items-start gap-2.5 w-full p-3 text-left hover:bg-white/[0.02] transition-all",
                         !n.read && "bg-[#00d4ff]/[0.02]"
