@@ -228,6 +228,98 @@ body {
   transform-origin: bottom right;
 }
 
+/* ===== NETFLIX SHELF SYSTEM ===== */
+.shelf-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.shelf-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.shelf-card {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.35s ease,
+              z-index 0s;
+  will-change: transform;
+}
+
+.shelf-card:hover {
+  transform: scale(1.08) translateY(-8px);
+  z-index: 20;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 212, 255, 0.08);
+}
+
+.shelf-row {
+  position: relative;
+}
+
+.shelf-row::before,
+.shelf-row::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.shelf-row::before {
+  left: 0;
+  background: linear-gradient(to right, #000000, transparent);
+}
+
+.shelf-row::after {
+  right: 0;
+  background: linear-gradient(to left, #000000, transparent);
+}
+
+/* ===== HERO SECTION ===== */
+.hero-gradient {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.7) 40%,
+    rgba(0, 0, 0, 0.3) 70%,
+    transparent 100%
+  );
+}
+
+.hero-gradient-top {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    transparent 30%
+  );
+}
+
+.hero-gradient-bottom {
+  background: linear-gradient(
+    to top,
+    #000000 0%,
+    rgba(0, 0, 0, 0.8) 30%,
+    transparent 100%
+  );
+}
+
+/* ===== FEATURED PREVIEW ===== */
+.preview-slide-in {
+  animation: previewSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes previewSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
 /* ===== CUSTOM SELECT ===== */
 select {
   appearance: none;

@@ -87,7 +87,7 @@ export default function DashboardLayout({
           <FloatingActions />
           <TerminalOverride />
           <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
-            <div className="p-4 lg:p-6 max-w-[1400px] mx-auto">
+            <div className="max-w-[1600px] mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
