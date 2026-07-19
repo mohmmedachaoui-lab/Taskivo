@@ -16,6 +16,7 @@ import HeroSection from "@/components/dashboard/HeroSection";
 import WeeklyActivity from "@/components/dashboard/WeeklyActivity";
 import FeaturedPreview from "@/components/dashboard/FeaturedPreview";
 import GoalBentoCard from "@/components/dashboard/GoalBentoCard";
+import AIAgentCard from "@/components/dashboard/AIAgentCard";
 import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import {
@@ -119,6 +120,11 @@ export default function DashboardPage() {
         {/* ===== WEEKLY GOAL + COMPANION ===== */}
         <BentoCard variant="cyan" delay={0.22}>
           <GoalBentoCard />
+        </BentoCard>
+
+        {/* ===== AI AGENT ===== */}
+        <BentoCard variant="neutral" span={2} rowSpan={2} delay={0.24}>
+          <AIAgentCard />
         </BentoCard>
 
         {/* ===== ACTIVE TASKS — yellow module ===== */}
