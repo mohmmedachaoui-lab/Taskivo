@@ -121,17 +121,21 @@ export async function getUnreadMessageCount(
   uid: string
 ): Promise<number> {
   const conversations = await getUserConversations(uid);
-  let total = 0;
-  for (const conv of conversations) {
-    const snap = await getDocs(
-      query(
-        collection(db(), "conversations", conv.id, "messages"),
-        where("read", "==", false)
-      )
-    );
-    total += snap.docs.filter((d) => d.data().senderUid !== uid).length;
-  }
-  return total;
+  if (conversations.length === 0) return 0;
+
+  const counts = await Promise.all(
+    conversations.map(async (conv) => {
+      const snap = await getDocs(
+        query(
+          collection(db(), "conversations", conv.id, "messages"),
+          where("read", "==", false),
+          where("senderUid", "!=", uid)
+        )
+      );
+      return snap.size;
+    })
+  );
+  return counts.reduce((a, b) => a + b, 0);
 }
 
 // ========== GROUP CHAT ==========

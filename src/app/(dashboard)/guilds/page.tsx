@@ -233,7 +233,7 @@ export default function GuildsPage() {
                       exit={{ height: 0, opacity: 0 }}
                       className="space-y-2 overflow-hidden"
                     >
-                      {guildMembers
+                      {[...guildMembers]
                         .sort((a, b) => b.totalXP - a.totalXP)
                         .map((member, i) => (
                         <div

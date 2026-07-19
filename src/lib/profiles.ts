@@ -59,16 +59,22 @@ export async function updatePublicProfile(uid: string, fields: Partial<PublicPro
 }
 
 export async function incrementPublicXP(uid: string, amount: number): Promise<void> {
-  const ref = doc(db(), "publicProfiles", uid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) {
+  const dbInstance = getFirebaseDb();
+  await runTransaction(dbInstance, async (transaction) => {
+    const ref = doc(dbInstance, "publicProfiles", uid);
+    const snap = await transaction.get(ref);
+    if (!snap.exists()) return;
+
     const currentXP = snap.data()?.totalXP ?? 0;
     const newTotalXP = Math.max(0, currentXP + amount);
-    await updateDoc(ref, {
-      totalXP: newTotalXP,
-      level: calculateLevel(newTotalXP),
+    const newLevel = calculateLevel(newTotalXP);
+    const xpChange = newTotalXP - currentXP;
+
+    transaction.update(ref, {
+      totalXP: increment(xpChange),
+      level: newLevel,
     });
-  }
+  });
 }
 
 export async function getPublicProfile(uid: string): Promise<PublicProfile | null> {

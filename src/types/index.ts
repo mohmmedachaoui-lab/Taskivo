@@ -43,6 +43,7 @@ export interface Task {
   createdAt: number;
   completedAt: number | null;
   xpAwarded: number;
+  urgent?: boolean;
 }
 
 export interface Guild {

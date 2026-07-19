@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -279,7 +279,7 @@ export default function FriendsPage() {
             />
           ) : (
             <div className="space-y-2">
-              {friends
+              {[...friends]
                 .sort((a, b) => b.totalXP - a.totalXP)
                 .map((friend) => (
                   <motion.div

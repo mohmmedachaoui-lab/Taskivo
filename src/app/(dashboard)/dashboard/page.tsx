@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel } from "@/lib/xp-engine";
-import { useRealtimeTasks } from "@/hooks/useRealtimeTasks";
+import { useTasks } from "@/hooks/useTasks";
 import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
 import { useFriends } from "@/hooks/useFriends";
@@ -30,8 +30,7 @@ import {
   Target,
   Users,
 } from "lucide-react";
-import { Guild, Duel } from "@/types";
-import { RealtimeTask } from "@/hooks/useRealtimeTasks";
+import { Guild, Duel, Task } from "@/types";
 
 const FEED_ICONS: Record<string, typeof Activity> = {
   task_completed: CheckCircle2,
@@ -56,12 +55,12 @@ const FEED_COLORS: Record<string, string> = {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { profile, stats } = useAppStore();
-  const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: RealtimeTask | Duel | Guild } | null>(null);
+  const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: Task | Duel | Guild } | null>(null);
   const [taskBurst, setTaskBurst] = useState<string | null>(null);
 
   // Real-time data
   const { friendUids } = useFriends(user?.uid);
-  const { tasks } = useRealtimeTasks(user?.uid);
+  const { tasks } = useTasks(user?.uid);
   const { activeDuels, pendingDuels } = useRealtimeDuels(user?.uid);
   const { feed } = useRealtimeFeed(user?.uid, friendUids);
 
@@ -95,7 +94,7 @@ export default function DashboardPage() {
   const totalXP = profile?.totalXP ?? 0;
 
   const allDuels = [...activeDuels, ...pendingDuels];
-  const activeTasks = tasks.filter((t) => t.completed < t.total);
+  const activeTasks = tasks.filter((t) => !t.completed);
   const now = useCurrentTime(60000);
 
   const getRelativeTime = (ts: number) => {
@@ -190,7 +189,7 @@ export default function DashboardPage() {
               <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                 <AnimatePresence mode="popLayout">
                   {activeTasks.slice(0, 8).map((task) => {
-                    const pct = task.total > 0 ? Math.round((task.completed / task.total) * 100) : 0;
+                    const pct = task.completed ? 100 : 0;
                     return (
                       <motion.div
                         key={task.id}

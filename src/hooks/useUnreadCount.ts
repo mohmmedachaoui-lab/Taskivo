@@ -25,17 +25,25 @@ export function useUnreadCount(uid: string | undefined) {
       )
     );
 
-    let total = 0;
-    for (const convDoc of convSnap.docs) {
-      const msgSnap = await getDocs(
-        query(
-          collection(db, "conversations", convDoc.id, "messages"),
-          where("read", "==", false)
-        )
-      );
-      total += msgSnap.docs.filter((d) => d.data().senderUid !== uid).length;
+    if (convSnap.empty) {
+      setUnreadCount(0);
+      return;
     }
-    setUnreadCount(total);
+
+    const convIds = convSnap.docs.map((d) => d.id);
+    const counts = await Promise.all(
+      convIds.map(async (convId) => {
+        const msgSnap = await getDocs(
+          query(
+            collection(db, "conversations", convId, "messages"),
+            where("read", "==", false),
+            where("senderUid", "!=", uid)
+          )
+        );
+        return msgSnap.size;
+      })
+    );
+    setUnreadCount(counts.reduce((a, b) => a + b, 0));
   }, [uid]);
 
   useEffect(() => {

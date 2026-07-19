@@ -51,6 +51,7 @@ export function useTasks(uid: string | undefined) {
             createdAt: data.createdAt ?? Date.now(),
             completedAt: data.completedAt ?? null,
             xpAwarded: data.xpAwarded ?? 0,
+            urgent: data.urgent ?? false,
           };
         });
         setTasks(items);
