@@ -101,6 +101,11 @@ service cloud.firestore {
         // XP submission: participants update only XP fields
         (request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(["challengerXP", "opponentXP"]))
+        ||
+        // Resolution: duel is active, only status and winnerId change
+        (resource.data.status == "active"
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(["status", "winnerId"]))
       );
       allow delete: if false;
     }
