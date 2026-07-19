@@ -45,14 +45,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { url } = event.request;
 
-  // 1. Bypass ALL cross-origin Firebase/Google requests — always network, no exceptions
+  // 1. Bypass ALL cross-origin Firebase/Google requests
   try {
     const reqUrl = new URL(url);
     if (BYPASS_DOMAINS.some((d) => reqUrl.hostname === d || reqUrl.hostname.endsWith("." + d))) {
-      return; // SW does not touch this request at all
+      return;
     }
   } catch {
-    // Malformed URL — skip
     return;
   }
 
@@ -61,32 +60,44 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Same-origin navigation: network-only, never serve cached HTML
+  // 3. Same-origin navigation: network-first with offline fallback
   if (
     event.request.mode === "navigate" &&
     url.startsWith(self.location.origin)
   ) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  // 4. Cache-first ONLY for _next static assets (immutable hashed files)
-  if (url.includes("/_next/")) {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((response) => {
+      fetch(event.request)
+        .then((response) => {
+          // Cache the page shell for offline fallback
           if (response.ok) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return response;
-        });
-      })
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // 5. Everything else: network-only (no cache fallback)
-  //    This prevents any auth, font, or image request from being delayed by cache misses
+  // 4. _next/ static assets: network-first, cache in background for offline
+  //    This ensures first load has ZERO SW overhead — identical to no-SW performance.
+  //    On subsequent loads, the browser gets fresh content AND updates the cache.
+  //    Offline: falls back to cached version.
+  if (url.includes("/_next/")) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 5. Everything else: no SW interception — browser handles directly
 });
