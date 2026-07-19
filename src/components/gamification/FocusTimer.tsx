@@ -9,7 +9,7 @@ import { useAppStore } from "@/store";
 import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { calculateWinXP, checkAndUnlockAchievements } from "@/lib/xp-engine";
-import { addActivityFeedItem } from "@/lib/social";
+import { addActivityFeedItem, updateActiveDuels } from "@/lib/social";
 import { incrementPublicXP } from "@/lib/profiles";
 
 type Mode = "work" | "break";
@@ -67,6 +67,7 @@ export default memo(function FocusTimer() {
       await updateDoc(userRef, { totalXP: increment(totalEarned) });
       await updateDoc(statsRef, { totalXP: increment(totalEarned), focusSessions: increment(1) });
       await incrementPublicXP(user.uid, totalEarned);
+      await updateActiveDuels(user.uid, totalEarned);
       await checkAndUnlockAchievements(user.uid);
 
       setTotalXP((prev) => prev + totalEarned);

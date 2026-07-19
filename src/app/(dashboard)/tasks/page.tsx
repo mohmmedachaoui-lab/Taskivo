@@ -15,7 +15,7 @@ import {
   calculateLevel,
   checkAndUnlockAchievements,
 } from "@/lib/xp-engine";
-import { addActivityFeedItem } from "@/lib/social";
+import { addActivityFeedItem, updateActiveDuels } from "@/lib/social";
 import { completeTaskAtomically } from "@/lib/profiles";
 import { requireOnline } from "@/lib/requireOnline";
 import { doc, runTransaction, increment } from "firebase/firestore";
@@ -73,6 +73,7 @@ export default function TasksPage() {
       if (!result) return;
       setProfile({ ...profile, totalXP: result.newTotalXP });
 
+      await updateActiveDuels(user.uid, task.xpAwarded);
       await checkAndUnlockAchievements(user.uid);
       await addActivityFeedItem(
         user.uid,

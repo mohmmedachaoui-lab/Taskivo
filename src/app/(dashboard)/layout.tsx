@@ -19,6 +19,7 @@ import { DeepModeProvider } from "@/components/ui/DeepMode";
 import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useSettleDuels } from "@/hooks/useSettleDuels";
 
 const ChatDrawer = dynamic(() => import("@/components/chat/ChatDrawer"), { ssr: false });
 
@@ -31,6 +32,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const reducedMotion = usePrefersReducedMotion();
+  useSettleDuels();
   const setProfile = useAppStore(s => s.setProfile);
   const setStats = useAppStore(s => s.setStats);
   const [authChecked, setAuthChecked] = useState(false);

@@ -11,14 +11,15 @@ import {
   orderBy,
   limit,
   increment,
+  runTransaction,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import {
   getPublicProfiles,
   searchPublicProfiles,
   getLeaderboard,
-  applyXPTransaction,
 } from "@/lib/profiles";
+import { calculateLevel } from "@/lib/xp-engine";
 import {
   Duel,
   FriendRequest,
@@ -267,6 +268,27 @@ export async function updateDuelXP(
   }
 }
 
+export async function updateActiveDuels(uid: string, xpGain: number): Promise<void> {
+  const snap1 = await getDocs(
+    query(
+      collection(db(), "duels"),
+      where("challengerId", "==", uid),
+      where("status", "==", "active")
+    )
+  );
+  const snap2 = await getDocs(
+    query(
+      collection(db(), "duels"),
+      where("opponentId", "==", uid),
+      where("status", "==", "active")
+    )
+  );
+  const all = [...snap1.docs, ...snap2.docs];
+  await Promise.all(
+    all.map((d) => updateDuelXP(d.id, uid, xpGain))
+  );
+}
+
 export async function resolveDuel(duelId: string): Promise<void> {
   const snap = await getDoc(doc(db(), "duels", duelId));
   if (!snap.exists()) return;
@@ -289,47 +311,77 @@ export async function resolveDuel(duelId: string): Promise<void> {
 }
 
 export async function settleDuelSide(duelId: string, uid: string): Promise<void> {
-  const snap = await getDoc(doc(db(), "duels", duelId));
-  if (!snap.exists()) return;
-  const duel = snap.data() as Duel;
+  const dbInstance = getFirebaseDb();
+  await runTransaction(dbInstance, async (transaction) => {
+    const duelRef = doc(dbInstance, "duels", duelId);
+    const duelSnap = await transaction.get(duelRef);
+    if (!duelSnap.exists()) return;
+    const duel = duelSnap.data() as Duel;
 
-  if (duel.status !== "completed") return;
+    if (duel.status !== "completed") return;
 
-  const isChallenger = uid === duel.challengerId;
-  if (isChallenger && duel.challengerSettled) return;
-  if (!isChallenger && duel.opponentSettled) return;
+    const isChallenger = uid === duel.challengerId;
+    if (isChallenger && duel.challengerSettled) return;
+    if (!isChallenger && duel.opponentSettled) return;
 
-  const stake = duel.stakeXP || 100;
-  const isWinner = duel.winnerId === uid;
-  const isDraw = duel.winnerId === null;
+    const isDraw = duel.winnerId === null;
+    const isWinner = duel.winnerId === uid;
 
-  let xpChange: number;
-  let extraStats: Record<string, unknown>;
+    if (isDraw) {
+      const settlementField = isChallenger ? "challengerSettled" : "opponentSettled";
+      transaction.update(duelRef, { [settlementField]: true });
+      return;
+    }
 
-  if (isDraw) {
-    xpChange = 0;
-    extraStats = {};
-  } else if (isWinner) {
-    xpChange = stake;
-    extraStats = { duelsWon: increment(1) };
-  } else {
-    const loserSnap = await getDoc(doc(db(), "users", uid));
-    const currentXP = loserSnap.data()?.totalXP ?? 0;
-    const cappedPenalty = Math.min(stake, currentXP);
-    xpChange = -cappedPenalty;
-    extraStats = { xpLost: increment(cappedPenalty) };
-  }
+    const stake = duel.stakeXP || 100;
 
-  if (xpChange !== 0) {
-    await applyXPTransaction(uid, xpChange, extraStats);
-  } else if (Object.keys(extraStats).length > 0) {
-    await applyXPTransaction(uid, 0, extraStats);
-  }
+    const userRef = doc(dbInstance, "users", uid);
+    const statsRef = doc(dbInstance, "stats", uid);
+    const ppRef = doc(dbInstance, "publicProfiles", uid);
 
-  // Mark this user's side as settled
-  const settlementField = isChallenger ? "challengerSettled" : "opponentSettled";
-  await updateDoc(doc(db(), "duels", duelId), {
-    [settlementField]: true,
+    const [userSnap, ppSnap] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(ppRef),
+    ]);
+
+    const currentXP = userSnap.data()?.totalXP ?? 0;
+
+    let xpChange: number;
+    let extraStats: Record<string, unknown>;
+
+    if (isWinner) {
+      xpChange = stake;
+      extraStats = { duelsWon: increment(1) };
+    } else {
+      const cappedPenalty = Math.min(stake, currentXP);
+      xpChange = -cappedPenalty;
+      extraStats = { xpLost: increment(cappedPenalty) };
+    }
+
+    const newTotalXP = Math.max(0, currentXP + xpChange);
+    const newLevel = calculateLevel(newTotalXP);
+    const xpChangeCapped = newTotalXP - currentXP;
+
+    if (xpChangeCapped !== 0) {
+      transaction.update(userRef, { totalXP: increment(xpChangeCapped) });
+      const { totalXP: _ignored, ...restStats } = extraStats;
+      transaction.update(statsRef, { totalXP: increment(xpChangeCapped), ...restStats });
+
+      if (ppSnap.exists()) {
+        transaction.update(ppRef, {
+          totalXP: increment(xpChangeCapped),
+          level: newLevel,
+        });
+      }
+    } else if (Object.keys(extraStats).length > 0) {
+      const { totalXP: _ignored, ...restStats } = extraStats;
+      if (Object.keys(restStats).length > 0) {
+        transaction.update(statsRef, restStats);
+      }
+    }
+
+    const settlementField = isChallenger ? "challengerSettled" : "opponentSettled";
+    transaction.update(duelRef, { [settlementField]: true });
   });
 }
 

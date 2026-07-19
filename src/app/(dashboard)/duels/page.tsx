@@ -13,7 +13,6 @@ import {
   getUserDuels,
   getCompletedDuels,
   resolveDuel,
-  settleDuelSide,
   searchUsers,
 } from "@/lib/social";
 import { Duel } from "@/types";
@@ -59,31 +58,25 @@ export default function DuelsPage() {
       ]);
       const now = Date.now();
 
-      // Step 1: Resolve any expired active duels (marks them complete)
+      let resolved = false;
       for (const duel of active) {
         if (duel.status === "active" && duel.endTime < now) {
           await resolveDuel(duel.id);
+          resolved = true;
         }
       }
 
-      // Step 2: Settle this user's side on all completed duels (applies XP to own docs)
-      const allCompleted = [...completed];
-      for (const duel of active) {
-        if (duel.status === "active" && duel.endTime < now) {
-          allCompleted.push({ ...duel, status: "completed" as const });
-        }
+      if (resolved) {
+        const [refreshedActive, refreshedCompleted] = await Promise.all([
+          getUserDuels(user.uid),
+          getCompletedDuels(user.uid),
+        ]);
+        setDuels(refreshedActive);
+        setCompletedDuels(refreshedCompleted);
+      } else {
+        setDuels(active);
+        setCompletedDuels(completed);
       }
-      for (const duel of allCompleted) {
-        await settleDuelSide(duel.id, user.uid);
-      }
-
-      // Step 3: Re-fetch to get settled state
-      const [refreshedActive, refreshedCompleted] = await Promise.all([
-        getUserDuels(user.uid),
-        getCompletedDuels(user.uid),
-      ]);
-      setDuels(refreshedActive);
-      setCompletedDuels(refreshedCompleted);
     } catch (err) {
       console.error("Failed to load duels:", err);
     }
