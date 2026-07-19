@@ -13,6 +13,7 @@ import FloatingActions from "@/components/ui/FloatingActions";
 import TerminalOverride from "@/components/ui/TerminalOverride";
 import ChatDrawer from "@/components/chat/ChatDrawer";
 import NotificationBanner from "@/components/ui/NotificationBanner";
+import InstallBanner from "@/components/layout/InstallBanner";
 import { DeepModeProvider } from "@/components/ui/DeepMode";
 import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
 import { motion, AnimatePresence } from "framer-motion";
@@ -138,6 +139,7 @@ export default function DashboardLayout({
           <TerminalOverride />
           <ChatDrawer />
           <NotificationBanner />
+          <InstallBanner />
           <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto">
               <AnimatePresence mode="wait">
