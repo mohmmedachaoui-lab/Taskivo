@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { getUserProfile, getUserStatsForProfile, getOrCreateDirectConversation } from "@/lib/chat";

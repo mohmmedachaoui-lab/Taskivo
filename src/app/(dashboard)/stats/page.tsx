@@ -102,7 +102,7 @@ export default function StatsPage() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="h-10 w-10 text-yellow-500 mb-3" />
         <p className="text-sm text-gray-400 mb-1">Failed to load stats</p>
-        <p className="text-xs text-gray-600 mb-4">Data couldn't be loaded. Check your connection and try again.</p>
+        <p className="text-xs text-gray-600 mb-4">Data couldn&apos;t be loaded. Check your connection and try again.</p>
         <button onClick={reset} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-gray-400 hover:text-white transition-colors">
           <RefreshCw className="h-3.5 w-3.5" /> Retry
         </button>

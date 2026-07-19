@@ -106,6 +106,16 @@ service cloud.firestore {
         (resource.data.status == "active"
           && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(["status", "winnerId"]))
+        ||
+        // Settlement: challenger marks their own side settled
+        (request.auth.uid == resource.data.challengerId
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(["challengerSettled"]))
+        ||
+        // Settlement: opponent marks their own side settled
+        (request.auth.uid == resource.data.opponentId
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(["opponentSettled"]))
       );
       allow delete: if false;
     }

@@ -11,17 +11,14 @@ import {
   orderBy,
   limit,
   increment,
-  runTransaction,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import {
-  getPublicProfile,
   getPublicProfiles,
   searchPublicProfiles,
   getLeaderboard,
-  incrementPublicXP,
+  applyXPTransaction,
 } from "@/lib/profiles";
-import { checkAndUnlockAchievements } from "@/lib/xp-engine";
 import {
   Duel,
   FriendRequest,
@@ -229,6 +226,8 @@ export async function createDuel(
     endTime: Date.now() + durationHours * 60 * 60 * 1000,
     createdAt: Date.now(),
     stakeXP,
+    challengerSettled: false,
+    opponentSettled: false,
   });
 
   await createNotification(opponentId, {
@@ -282,116 +281,56 @@ export async function resolveDuel(duelId: string): Promise<void> {
       ? duel.opponentId
       : null;
 
-  if (!winnerId) {
-    await updateDoc(doc(db(), "duels", duelId), {
-      status: "completed",
-      winnerId: null,
-    });
-    return;
+  // Step 1: Mark duel complete (either participant can write this)
+  await updateDoc(doc(db(), "duels", duelId), {
+    status: "completed",
+    winnerId,
+  });
+}
+
+export async function settleDuelSide(duelId: string, uid: string): Promise<void> {
+  const snap = await getDoc(doc(db(), "duels", duelId));
+  if (!snap.exists()) return;
+  const duel = snap.data() as Duel;
+
+  if (duel.status !== "completed") return;
+
+  const isChallenger = uid === duel.challengerId;
+  if (isChallenger && duel.challengerSettled) return;
+  if (!isChallenger && duel.opponentSettled) return;
+
+  const stake = duel.stakeXP || 100;
+  const isWinner = duel.winnerId === uid;
+  const isDraw = duel.winnerId === null;
+
+  let xpChange: number;
+  let extraStats: Record<string, unknown>;
+
+  if (isDraw) {
+    xpChange = 0;
+    extraStats = {};
+  } else if (isWinner) {
+    xpChange = stake;
+    extraStats = { duelsWon: increment(1) };
+  } else {
+    const loserSnap = await getDoc(doc(db(), "users", uid));
+    const currentXP = loserSnap.data()?.totalXP ?? 0;
+    const cappedPenalty = Math.min(stake, currentXP);
+    xpChange = -cappedPenalty;
+    extraStats = { xpLost: increment(cappedPenalty) };
   }
 
-  const loserId =
-    winnerId === duel.challengerId ? duel.opponentId : duel.challengerId;
-  const stake = duel.stakeXP || 100;
+  if (xpChange !== 0) {
+    await applyXPTransaction(uid, xpChange, extraStats);
+  } else if (Object.keys(extraStats).length > 0) {
+    await applyXPTransaction(uid, 0, extraStats);
+  }
 
-  const actualPenalty = await runTransaction(db(), async (transaction) => {
-    const duelRef = doc(db(), "duels", duelId);
-    const winnerStatsRef = doc(db(), "stats", winnerId);
-    const loserStatsRef = doc(db(), "stats", loserId);
-    const winnerUserRef = doc(db(), "users", winnerId);
-    const loserUserRef = doc(db(), "users", loserId);
-    const [currentDuel, winnerStatsSnap, loserStatsSnap, winnerUserSnap, loserUserSnap] = await Promise.all([
-      transaction.get(duelRef),
-      transaction.get(winnerStatsRef),
-      transaction.get(loserStatsRef),
-      transaction.get(winnerUserRef),
-      transaction.get(loserUserRef),
-    ]);
-
-    if (!currentDuel.exists()) return 0;
-    if ((currentDuel.data()?.status as string) === "completed") return 0;
-
-    const loserXP = loserUserSnap.data()?.totalXP ?? 0;
-    const cappedPenalty = Math.min(stake, loserXP);
-
-    transaction.update(duelRef, {
-      status: "completed",
-      winnerId,
-    });
-
-    transaction.update(winnerStatsRef, {
-      totalXP: increment(stake),
-      duelsWon: (winnerStatsSnap.data()?.duelsWon ?? 0) + 1,
-    });
-
-    transaction.update(loserStatsRef, {
-      totalXP: increment(-cappedPenalty),
-      xpLost: increment(cappedPenalty),
-    });
-
-    if (winnerUserSnap.exists()) {
-      transaction.update(winnerUserRef, {
-        totalXP: increment(stake),
-        level: Math.floor(((winnerUserSnap.data()?.totalXP ?? 0) + stake) / 500) + 1,
-      });
-    }
-
-    if (loserUserSnap.exists()) {
-      const newLoserXP = Math.max(0, (loserUserSnap.data()?.totalXP ?? 0) - cappedPenalty);
-      transaction.update(loserUserRef, {
-        totalXP: increment(-cappedPenalty),
-        level: Math.floor(newLoserXP / 500) + 1,
-      });
-    }
-
-    return cappedPenalty;
+  // Mark this user's side as settled
+  const settlementField = isChallenger ? "challengerSettled" : "opponentSettled";
+  await updateDoc(doc(db(), "duels", duelId), {
+    [settlementField]: true,
   });
-
-  if (actualPenalty === 0) return;
-
-  // Post-transaction: update publicProfiles, send notifications, activity feed, achievements.
-  // Each wrapped independently so one failure doesn't block the others.
-  // publicProfiles cannot be in the main transaction due to Firestore rules
-  // (request.auth.uid must match the doc userId — can't write to another user's profile).
-
-  const withRetry = async (fn: () => Promise<unknown>, label: string, attempts = 2) => {
-    for (let i = 0; i < attempts; i++) {
-      try { await fn(); return; } catch (err) {
-        if (i === attempts - 1) console.error(`resolveDuel ${label} failed:`, err);
-      }
-    }
-  };
-
-  await withRetry(() => incrementPublicXP(winnerId, stake), "winnerPublicXP");
-  await withRetry(() => incrementPublicXP(loserId, -actualPenalty), "loserPublicXP");
-
-  const winnerProfile = await getPublicProfile(winnerId);
-  const loserProfile = await getPublicProfile(loserId);
-  const winnerCallsign = winnerProfile?.callsign ?? "Unknown";
-  const loserCallsign = loserProfile?.callsign ?? "Unknown";
-
-  const winnerName = winnerId === duel.challengerId ? duel.challengerName : duel.opponentName;
-  const loserName = winnerId === duel.challengerId ? duel.opponentName : duel.challengerName;
-
-  await withRetry(() => createNotification(winnerId, {
-    type: "stake_won",
-    title: "Duel Victory!",
-    message: `You won ${stake} XP from ${loserName}!`,
-    data: { duelId, stakeXP: stake },
-  }), "winnerNotification");
-
-  await withRetry(() => createNotification(loserId, {
-    type: "stake_lost",
-    title: "Duel Defeat",
-    message: `You lost ${actualPenalty} XP to ${winnerName}`,
-    data: { duelId, stakeXP: actualPenalty },
-  }), "loserNotification");
-
-  await withRetry(() => addActivityFeedItem(winnerId, winnerCallsign, "duel_won", `Won a duel against ${loserCallsign}`, stake), "winnerFeed");
-  await withRetry(() => addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -actualPenalty), "loserFeed");
-
-  await withRetry(() => checkAndUnlockAchievements(winnerId), "winnerAchievements");
-  await withRetry(() => checkAndUnlockAchievements(loserId), "loserAchievements");
 }
 
 export async function getUserDuels(uid: string): Promise<Duel[]> {

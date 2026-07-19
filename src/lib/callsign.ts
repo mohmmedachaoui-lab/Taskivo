@@ -1,6 +1,4 @@
-import { getFirebaseDb } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { getPublicProfiles, searchPublicProfiles } from "@/lib/profiles";
+import { searchPublicProfiles } from "@/lib/profiles";
 
 export function generateFriendSuffix(): number {
   return Math.floor(1000 + Math.random() * 9000);

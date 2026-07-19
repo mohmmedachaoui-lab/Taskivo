@@ -99,6 +99,8 @@ export interface Duel {
   endTime: number;
   createdAt: number;
   stakeXP: number;
+  challengerSettled?: boolean;
+  opponentSettled?: boolean;
 }
 
 export interface FriendRequest {

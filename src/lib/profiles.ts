@@ -27,10 +27,6 @@ export interface PublicProfile {
   totalXP: number;
 }
 
-const PUBLIC_FIELDS: (keyof PublicProfile)[] = [
-  "uid", "callsign", "photoURL", "friendCode", "friendSuffix", "rank", "level", "totalXP",
-];
-
 function pickPublic<T extends Record<string, unknown>>(data: T): PublicProfile {
   return {
     uid: String(data.uid ?? ""),
@@ -151,7 +147,7 @@ export async function applyXPTransaction(
     const statsRef = doc(dbInstance, "stats", uid);
     const ppRef = doc(dbInstance, "publicProfiles", uid);
 
-    const [userSnap, statsSnap, ppSnap] = await Promise.all([
+    const [userSnap, , ppSnap] = await Promise.all([
       transaction.get(userRef),
       transaction.get(statsRef),
       transaction.get(ppRef),
