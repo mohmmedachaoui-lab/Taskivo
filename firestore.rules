@@ -73,7 +73,10 @@ service cloud.firestore {
         request.resource.data.uid2 == request.auth.uid
       );
       allow update: if false;
-      allow delete: if false;
+      allow delete: if request.auth != null && (
+        resource.data.uid1 == request.auth.uid ||
+        resource.data.uid2 == request.auth.uid
+      );
     }
 
     // ========== DUELS ==========

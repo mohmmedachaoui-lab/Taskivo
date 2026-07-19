@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -127,6 +128,39 @@ export async function respondFriendRequest(
       data: { friendUid: req.toUid },
     });
   }
+}
+
+// ========== REMOVE FRIEND ==========
+
+export async function removeFriend(
+  currentUid: string,
+  friendUid: string
+): Promise<"removed" | "not_friends"> {
+  const snap1 = await getDocs(
+    query(
+      collection(db(), "friendships"),
+      where("uid1", "==", currentUid),
+      where("uid2", "==", friendUid)
+    )
+  );
+  if (!snap1.empty) {
+    await deleteDoc(snap1.docs[0].ref);
+    return "removed";
+  }
+
+  const snap2 = await getDocs(
+    query(
+      collection(db(), "friendships"),
+      where("uid1", "==", friendUid),
+      where("uid2", "==", currentUid)
+    )
+  );
+  if (!snap2.empty) {
+    await deleteDoc(snap2.docs[0].ref);
+    return "removed";
+  }
+
+  return "not_friends";
 }
 
 export async function getFriends(uid: string): Promise<string[]> {

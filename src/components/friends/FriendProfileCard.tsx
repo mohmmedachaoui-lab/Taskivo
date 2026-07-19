@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { getUserProfile, getUserStatsForProfile, getOrCreateDirectConversation } from "@/lib/chat";
+import { removeFriend } from "@/lib/social";
 import { useChatStore } from "@/store";
 import { calculateXPProgress, getRankTitle } from "@/lib/xp-engine";
-import { X, MessageSquare, Swords, Trophy, Flame, Target } from "lucide-react";
+import { X, MessageSquare, Swords, Trophy, Flame, Target, UserMinus } from "lucide-react";
 import Button from "@/components/ui/Button";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface FriendProfileCardProps {
   uid: string;
@@ -22,6 +24,8 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
   const [data, setData] = useState<{ uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number; totalXP: number } | null>(null);
   const [stats, setStats] = useState<{ tasksCompleted: number; duelsWon: number; currentStreak: number; achievements: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -44,6 +48,19 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
     );
     setActiveConversation(convId);
     setDrawerOpen(true);
+    onClose();
+  };
+
+  const handleRemove = async () => {
+    if (!user || !data) return;
+    setRemoving(true);
+    try {
+      await removeFriend(user.uid, data.uid);
+    } catch (err) {
+      console.error("Failed to remove friend:", err);
+    }
+    setRemoving(false);
+    setShowConfirm(false);
     onClose();
   };
 
@@ -157,8 +174,27 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
             <Swords className="h-3.5 w-3.5" />
             Duel
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirm(true)}
+            className="gap-2 hover:bg-[#ef4444]/10 hover:border-[#ef4444]/20 hover:text-[#ef4444]"
+          >
+            <UserMinus className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </motion.div>
+
+      {/* Remove Confirmation */}
+      <ConfirmModal
+        open={showConfirm}
+        title="Remove Friend"
+        message={`Remove ${data.callsign} from your squad? You can add them again later.`}
+        confirmLabel="Remove"
+        danger
+        loading={removing}
+        onConfirm={handleRemove}
+        onCancel={() => setShowConfirm(false)}
+      />
     </>
   );
 }

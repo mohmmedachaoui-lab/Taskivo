@@ -13,9 +13,11 @@ import {
   getFriends,
   getPendingFriendRequests,
   respondFriendRequest,
+  removeFriend,
 } from "@/lib/social";
 import { getPublicProfiles } from "@/lib/profiles";
 import FriendProfileCard from "@/components/friends/FriendProfileCard";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import { FriendRequest, FriendProfile } from "@/types";
 import {
   Users,
@@ -24,6 +26,7 @@ import {
   Check,
   X,
   UserCheck,
+  UserMinus,
   Mail,
   Copy,
   CheckCircle2,
@@ -45,6 +48,8 @@ export default function FriendsPage() {
   const [searching, setSearching] = useState(false);
   const [copied, setCopied] = useState(false);
   const [profileUid, setProfileUid] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<FriendProfile | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const loadFriends = useCallback(async () => {
     if (!user) return;
@@ -78,6 +83,21 @@ export default function FriendsPage() {
   useEffect(() => {
     loadFriends();
   }, [loadFriends]);
+
+  const handleRemoveFriend = async () => {
+    if (!user || !removeTarget) return;
+    setRemoving(true);
+    try {
+      const result = await removeFriend(user.uid, removeTarget.uid);
+      if (result === "removed") {
+        setFriends((prev) => prev.filter((f) => f.uid !== removeTarget.uid));
+      }
+    } catch (err) {
+      console.error("Failed to remove friend:", err);
+    }
+    setRemoving(false);
+    setRemoveTarget(null);
+  };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -303,6 +323,16 @@ export default function FriendsPage() {
                         >
                           <UserCheck className="h-3.5 w-3.5" />
                         </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRemoveTarget(friend);
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-white/[0.04] text-gray-500 hover:text-[#ef4444] transition-colors"
+                          title="Remove friend"
+                        >
+                          <UserMinus className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </Card>
                   </motion.div>
@@ -364,6 +394,18 @@ export default function FriendsPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Remove Friend Confirmation */}
+      <ConfirmModal
+        open={!!removeTarget}
+        title="Remove Friend"
+        message={`Remove ${removeTarget?.callsign ?? "this agent"} from your squad? You can add them again later.`}
+        confirmLabel="Remove"
+        danger
+        loading={removing}
+        onConfirm={handleRemoveFriend}
+        onCancel={() => setRemoveTarget(null)}
+      />
     </div>
   );
 }
