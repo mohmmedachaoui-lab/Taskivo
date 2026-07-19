@@ -176,3 +176,45 @@ export async function applyXPTransaction(
     return { newTotalXP, newLevel };
   });
 }
+
+export async function completeTaskAtomically(
+  uid: string,
+  taskId: string,
+  xpAwarded: number,
+  extraStats: Record<string, unknown> = {}
+): Promise<{ newTotalXP: number; newLevel: number } | null> {
+  const dbInstance = getFirebaseDb();
+  return runTransaction(dbInstance, async (transaction) => {
+    const taskRef = doc(dbInstance, "tasks", taskId);
+    const userRef = doc(dbInstance, "users", uid);
+    const statsRef = doc(dbInstance, "stats", uid);
+    const ppRef = doc(dbInstance, "publicProfiles", uid);
+
+    const [taskSnap, userSnap, ppSnap] = await Promise.all([
+      transaction.get(taskRef),
+      transaction.get(userRef),
+      transaction.get(ppRef),
+    ]);
+
+    if (!taskSnap.exists() || taskSnap.data().completed) return null;
+
+    const currentXP = userSnap.data()?.totalXP ?? 0;
+    const newTotalXP = Math.max(0, currentXP + xpAwarded);
+    const newLevel = calculateLevel(newTotalXP);
+    const xpChangeCapped = newTotalXP - currentXP;
+
+    transaction.update(taskRef, { completed: true, completedAt: Date.now() });
+    transaction.update(userRef, { totalXP: increment(xpChangeCapped) });
+    const { totalXP: _ignored, ...restStats } = extraStats;
+    transaction.update(statsRef, { totalXP: increment(xpChangeCapped), ...restStats });
+
+    if (ppSnap.exists()) {
+      transaction.update(ppRef, {
+        totalXP: increment(xpChangeCapped),
+        level: newLevel,
+      });
+    }
+
+    return { newTotalXP, newLevel };
+  });
+}

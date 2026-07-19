@@ -19,9 +19,11 @@ import {
 } from "@/lib/social";
 import { getPublicProfiles } from "@/lib/profiles";
 import { requireOnline } from "@/lib/requireOnline";
-import FriendProfileCard from "@/components/friends/FriendProfileCard";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import dynamic from "next/dynamic";
 import { FriendRequest, FriendProfile } from "@/types";
+
+const FriendProfileCard = dynamic(() => import("@/components/friends/FriendProfileCard"), { ssr: false });
+const ConfirmModal = dynamic(() => import("@/components/ui/ConfirmModal"), { ssr: false });
 import {
   Users,
   UserPlus,

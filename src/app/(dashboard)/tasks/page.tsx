@@ -16,7 +16,7 @@ import {
   checkAndUnlockAchievements,
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
-import { applyXPTransaction } from "@/lib/profiles";
+import { completeTaskAtomically } from "@/lib/profiles";
 import { requireOnline } from "@/lib/requireOnline";
 import { doc, runTransaction, increment } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
@@ -63,14 +63,15 @@ export default function TasksPage() {
         return;
       }
       if (!requireOnline()) return;
-      await toggleTask(id);
 
       const isEarlyBird = new Date().getHours() < 8;
-      const { newTotalXP } = await applyXPTransaction(user.uid, task.xpAwarded, {
+      const result = await completeTaskAtomically(user.uid, id, task.xpAwarded, {
         tasksCompleted: increment(1),
         ...(isEarlyBird ? { earlyBirdTasks: increment(1) } : {}),
       });
-      setProfile({ ...profile, totalXP: newTotalXP });
+
+      if (!result) return;
+      setProfile({ ...profile, totalXP: result.newTotalXP });
 
       await checkAndUnlockAchievements(user.uid);
       await addActivityFeedItem(
@@ -81,7 +82,7 @@ export default function TasksPage() {
         task.xpAwarded
       );
     },
-    [toggleTask, tasks, user, profile, setProfile]
+    [tasks, user, profile, setProfile]
   );
 
   const handleAdd = useCallback(async () => {
@@ -144,6 +145,7 @@ export default function TasksPage() {
           setPenaltyFlash(task.id);
           setTimeout(() => setPenaltyFlash(null), 3000);
           setProfile({ ...profile, totalXP: newTotalXP });
+          await checkAndUnlockAchievements(user.uid);
         } catch {
           // Transaction failed — task not penalized, will retry next loop
         }

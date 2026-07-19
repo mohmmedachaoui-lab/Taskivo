@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskivo-shell-v1";
+const CACHE_NAME = "taskivo-shell-v2";
 
 // Only actual static files to pre-cache — NEVER HTML routes
 const PRECACHE_ASSETS = [
@@ -6,6 +6,7 @@ const PRECACHE_ASSETS = [
   "/icon-512.png",
   "/apple-touch-icon.png",
   "/manifest.json",
+  "/offline.html",
 ];
 
 // Domains that must ALWAYS go to network — never cached, never delayed
@@ -75,7 +76,11 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() =>
+          caches.match(event.request).then(
+            (cached) => cached || caches.match("/offline.html")
+          )
+        )
     );
     return;
   }

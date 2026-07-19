@@ -349,8 +349,21 @@ export async function resolveDuel(duelId: string): Promise<void> {
 
   if (actualPenalty === 0) return;
 
-  await incrementPublicXP(winnerId, stake);
-  await incrementPublicXP(loserId, -actualPenalty);
+  // Post-transaction: update publicProfiles, send notifications, activity feed, achievements.
+  // Each wrapped independently so one failure doesn't block the others.
+  // publicProfiles cannot be in the main transaction due to Firestore rules
+  // (request.auth.uid must match the doc userId — can't write to another user's profile).
+
+  const withRetry = async (fn: () => Promise<unknown>, label: string, attempts = 2) => {
+    for (let i = 0; i < attempts; i++) {
+      try { await fn(); return; } catch (err) {
+        if (i === attempts - 1) console.error(`resolveDuel ${label} failed:`, err);
+      }
+    }
+  };
+
+  await withRetry(() => incrementPublicXP(winnerId, stake), "winnerPublicXP");
+  await withRetry(() => incrementPublicXP(loserId, -actualPenalty), "loserPublicXP");
 
   const winnerProfile = await getPublicProfile(winnerId);
   const loserProfile = await getPublicProfile(loserId);
@@ -360,24 +373,25 @@ export async function resolveDuel(duelId: string): Promise<void> {
   const winnerName = winnerId === duel.challengerId ? duel.challengerName : duel.opponentName;
   const loserName = winnerId === duel.challengerId ? duel.opponentName : duel.challengerName;
 
-  await createNotification(winnerId, {
+  await withRetry(() => createNotification(winnerId, {
     type: "stake_won",
     title: "Duel Victory!",
     message: `You won ${stake} XP from ${loserName}!`,
     data: { duelId, stakeXP: stake },
-  });
-  await createNotification(loserId, {
+  }), "winnerNotification");
+
+  await withRetry(() => createNotification(loserId, {
     type: "stake_lost",
     title: "Duel Defeat",
     message: `You lost ${actualPenalty} XP to ${winnerName}`,
     data: { duelId, stakeXP: actualPenalty },
-  });
+  }), "loserNotification");
 
-  await addActivityFeedItem(winnerId, winnerCallsign, "duel_won", `Won a duel against ${loserCallsign}`, stake);
-  await addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -actualPenalty);
+  await withRetry(() => addActivityFeedItem(winnerId, winnerCallsign, "duel_won", `Won a duel against ${loserCallsign}`, stake), "winnerFeed");
+  await withRetry(() => addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -actualPenalty), "loserFeed");
 
-  await checkAndUnlockAchievements(winnerId);
-  await checkAndUnlockAchievements(loserId);
+  await withRetry(() => checkAndUnlockAchievements(winnerId), "winnerAchievements");
+  await withRetry(() => checkAndUnlockAchievements(loserId), "loserAchievements");
 }
 
 export async function getUserDuels(uid: string): Promise<Duel[]> {

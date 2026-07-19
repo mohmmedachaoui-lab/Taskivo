@@ -41,6 +41,7 @@ export default memo(function ChatDrawer() {
 
   const [input, setInput] = useState("");
   const [showGroupModal, setShowGroupModal] = useState(false);
+  const [offlineMsg, setOfflineMsg] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -64,7 +65,11 @@ export default memo(function ChatDrawer() {
 
   const handleSend = async () => {
     if (!input.trim() || !user || !profile || !activeConversationId) return;
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) {
+      setOfflineMsg(true);
+      setTimeout(() => setOfflineMsg(false), 3000);
+      return;
+    }
     const text = input;
     setInput("");
     stopTyping();
@@ -278,6 +283,18 @@ export default memo(function ChatDrawer() {
                     )}
                   </AnimatePresence>
 
+                  <AnimatePresence>
+                    {offlineMsg && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        className="mx-3 mb-1 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[10px] text-orange-400 font-[family-name:var(--font-mono)]"
+                      >
+                        You&apos;re offline — message will send when reconnected
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <div className="px-3 py-3 border-t border-white/[0.06]" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
                     <div className="flex items-center gap-2">
                       <input
