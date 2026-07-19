@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Card from "@/components/ui/Card";
-import { Trophy, Lock, Zap, Flame, Brain, Swords } from "lucide-react";
+import Skeleton from "@/components/ui/Skeleton";
+import { Trophy, Lock, Zap, Flame, Brain, Swords, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/store";
+import { useSkeletonTimeout } from "@/hooks/useSkeletonTimeout";
 import { ACHIEVEMENTS_DEFINITIONS, calculateLevel } from "@/lib/xp-engine";
 
 const CATEGORIES = ["All", "Tasks", "Streaks", "Progression", "Duels", "Focus", "Special"] as const;
@@ -18,9 +20,76 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   Special: <Trophy className="h-4 w-4" />,
 };
 
+function AchievementsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-3 w-48 mt-2" />
+      </div>
+
+      <Card>
+        <div className="flex items-center justify-between mb-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-10" />
+        </div>
+        <div className="h-3 rounded-full bg-gray-800 overflow-hidden">
+          <div className="h-full w-1/3 shimmer rounded-full bg-white/[0.03]" />
+        </div>
+      </Card>
+
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className="h-8 w-16 shimmer rounded-full bg-white/[0.03] border border-white/[0.04]" />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="relative overflow-hidden opacity-80">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 shimmer rounded-lg bg-white/[0.03]" />
+              <div className="flex-1 min-w-0">
+                <Skeleton className="h-4 w-28 mb-2" />
+                <Skeleton className="h-3 w-full mb-1" />
+                <Skeleton className="h-3 w-2/3 mb-2" />
+                <div className="flex items-center justify-between mb-1">
+                  <Skeleton className="h-2.5 w-20" />
+                  <Skeleton className="h-2.5 w-8" />
+                </div>
+                <div className="h-1.5 rounded-full bg-gray-800 overflow-hidden">
+                  <div className="h-full w-2/5 shimmer rounded-full bg-white/[0.03]" />
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AchievementsPage() {
-  const { stats, profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const stats = useAppStore(s => s.stats);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const loading = !stats || !profile;
+  const { timedOut, reset } = useSkeletonTimeout(loading);
+
+  if (loading && !timedOut) return <AchievementsSkeleton />;
+  if (loading && timedOut) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <AlertTriangle className="h-10 w-10 text-yellow-500 mb-3" />
+        <p className="text-sm text-gray-400 mb-1">Failed to load achievements</p>
+        <p className="text-xs text-gray-600 mb-4">Data couldn't be loaded. Check your connection and try again.</p>
+        <button onClick={reset} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-gray-400 hover:text-white transition-colors">
+          <RefreshCw className="h-3.5 w-3.5" /> Retry
+        </button>
+      </div>
+    );
+  }
+
   const unlocked = stats?.achievements ?? [];
   const tasksCompleted = stats?.tasksCompleted ?? 0;
   const currentStreak = stats?.currentStreak ?? 0;

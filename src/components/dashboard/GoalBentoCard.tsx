@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Target, MessageCircle, X, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,9 +14,10 @@ import {
 } from "@/lib/companion";
 import { CompanionState } from "@/types";
 
-export default function GoalBentoCard() {
+export default memo(function GoalBentoCard() {
   const { user } = useAuth();
-  const { profile, stats } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const stats = useAppStore(s => s.stats);
   const { goals, setGoals, subscribeToGoals } = useWeeklyGoals(user?.uid);
   const [showCompanion, setShowCompanion] = useState(false);
   const [companion, setCompanion] = useState<CompanionState>(INITIAL_COMPANION_STATE);
@@ -255,4 +256,4 @@ export default function GoalBentoCard() {
       </AnimatePresence>
     </div>
   );
-}
+})

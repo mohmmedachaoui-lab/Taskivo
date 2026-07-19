@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
@@ -11,12 +11,16 @@ import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import FloatingActions from "@/components/ui/FloatingActions";
 import TerminalOverride from "@/components/ui/TerminalOverride";
-import ChatDrawer from "@/components/chat/ChatDrawer";
+import dynamic from "next/dynamic";
 import NotificationBanner from "@/components/ui/NotificationBanner";
 import InstallBanner from "@/components/layout/InstallBanner";
+import OfflineBanner from "@/components/ui/OfflineBanner";
 import { DeepModeProvider } from "@/components/ui/DeepMode";
 import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+
+const ChatDrawer = dynamic(() => import("@/components/chat/ChatDrawer"), { ssr: false });
 
 export default function DashboardLayout({
   children,
@@ -25,7 +29,10 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const { setProfile, setStats } = useAppStore();
+  const pathname = usePathname();
+  const reducedMotion = usePrefersReducedMotion();
+  const setProfile = useAppStore(s => s.setProfile);
+  const setStats = useAppStore(s => s.setStats);
   const [authChecked, setAuthChecked] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const bootRun = useRef(false);
@@ -140,15 +147,17 @@ export default function DashboardLayout({
           <ChatDrawer />
           <NotificationBanner />
           <InstallBanner />
+          <OfflineBanner />
           <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto">
               <AnimatePresence mode="wait">
                 {showShell ? (
                   <motion.div
-                    key="content"
-                    initial={{ opacity: 0, y: 10 }}
+                    key={reducedMotion ? "content" : pathname}
+                    initial={reducedMotion ? false : { opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
                   >
                     {children}
                   </motion.div>
@@ -158,6 +167,7 @@ export default function DashboardLayout({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                     className="p-4 lg:p-6"
                   >
                     <div className="bento-grid">

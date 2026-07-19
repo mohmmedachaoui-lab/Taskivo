@@ -106,7 +106,7 @@ export const ACHIEVEMENTS_DEFINITIONS = [
   { id: "duel_win_15", name: "Duel Legend", description: "Win 15 duels", icon: "🏆", requirement: 15, type: "duels_won" as const, category: "Duels" },
   { id: "focus_10", name: "Deep Work Master", description: "Complete 10 focus sessions", icon: "🧠", requirement: 10, type: "focus_sessions" as const, category: "Focus" },
   { id: "focus_50", name: "Zen Master", description: "Complete 50 focus sessions", icon: "🧘", requirement: 50, type: "focus_sessions" as const, category: "Focus" },
-  { id: "early_bird", name: "Early Bird", description: "Complete a task before 8 AM", icon: "🐦", requirement: 1, type: "tasks_completed" as const, category: "Special" },
+  { id: "early_bird", name: "Early Bird", description: "Complete a task before 8 AM", icon: "🐦", requirement: 1, type: "early_bird" as const, category: "Special" },
 ] as const;
 
 export async function checkAndUnlockAchievements(uid: string): Promise<string[]> {
@@ -132,6 +132,7 @@ export async function checkAndUnlockAchievements(uid: string): Promise<string[]>
       case "xp": met = totalXP >= ach.requirement; break;
       case "duels_won": met = (stats.duelsWon ?? 0) >= ach.requirement; break;
       case "focus_sessions": met = (stats.focusSessions ?? 0) >= ach.requirement; break;
+      case "early_bird": met = (stats.earlyBirdTasks ?? 0) >= ach.requirement; break;
     }
     if (met) newlyUnlocked.push(ach.id);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { LucideIcon } from "lucide-react";
 
 interface PulsingStatCardProps {
@@ -41,7 +41,7 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span className="tabular-nums">{display}</span>;
 }
 
-export default function PulsingStatCard({
+export default memo(function PulsingStatCard({
   label,
   value,
   icon: Icon,
@@ -101,4 +101,4 @@ export default function PulsingStatCard({
       </div>
     </div>
   );
-}
+})

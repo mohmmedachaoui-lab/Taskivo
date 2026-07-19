@@ -9,6 +9,14 @@
       ]
     },
     {
+      "collectionGroup": "weeklyGoals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid", "order": "ASCENDING" },
+        { "fieldPath": "weekStart", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "notifications",
       "queryScope": "COLLECTION",
       "fields": [
@@ -51,10 +59,27 @@
       ]
     },
     {
+      "collectionGroup": "friendships",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid1", "order": "ASCENDING" },
+        { "fieldPath": "uid2", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "friendships",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid2", "order": "ASCENDING" },
+        { "fieldPath": "uid1", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "duels",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "challengerId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
@@ -63,6 +88,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "opponentId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
@@ -94,6 +120,13 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "alarms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid", "order": "ASCENDING" }
       ]
     },
     {

@@ -17,6 +17,7 @@ import {
 } from "@/lib/social";
 import { Duel } from "@/types";
 import { calculateDuelStake } from "@/lib/xp-engine";
+import { requireOnline } from "@/lib/requireOnline";
 import {
   Swords,
   Shield,
@@ -33,7 +34,7 @@ import EmptyState from "@/components/ui/EmptyState";
 
 export default function DuelsPage() {
   const { user } = useAuth();
-  const { profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
   const [duels, setDuels] = useState<Duel[]>([]);
   const [completedDuels, setCompletedDuels] = useState<Duel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +89,7 @@ export default function DuelsPage() {
   };
 
   const handleChallenge = async (opponent: { uid: string; callsign: string }) => {
-    if (!user || !profile) return;
+    if (!user || !profile || !requireOnline()) return;
     await createDuel(user.uid, profile.callsign, opponent.uid, opponent.callsign, stakeXP);
     setShowChallenge(false);
     setSearchTerm("");
@@ -319,7 +320,7 @@ export default function DuelsPage() {
                         </span>
                       )}
                       {duel.status === "pending" && user?.uid === duel.opponentId && (
-                        <Button size="sm" onClick={async () => { await acceptDuel(duel.id); loadDuels(); }}>
+                        <Button size="sm" onClick={async () => { if (!requireOnline()) return; await acceptDuel(duel.id); loadDuels(); }}>
                           Accept Duel
                         </Button>
                       )}

@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 
-export default function TerminalOverride() {
+export default memo(function TerminalOverride() {
   const { user } = useAuth();
-  const { profile, setProfile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const setProfile = useAppStore(s => s.setProfile);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
@@ -238,4 +239,4 @@ export default function TerminalOverride() {
       </AnimatePresence>
     </>
   );
-}
+})

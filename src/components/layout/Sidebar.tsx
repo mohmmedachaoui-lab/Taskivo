@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
@@ -9,7 +10,7 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import Notifications from "@/components/social/Notifications";
 import { useDarkModeV2 } from "@/components/ui/DarkModeV2";
 import { clsx } from "clsx";
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -40,10 +41,10 @@ const navItems = [
   { href: "/settings", label: "System", icon: Settings, accent: "#6b7280" },
 ];
 
-export default function Sidebar() {
+export default memo(function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
   const { isV2, toggleV2 } = useDarkModeV2();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -98,7 +99,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-2.5">
             {profile.photoURL ? (
               <div className="relative">
-                <img src={profile.photoURL} alt={profile.callsign} className="h-8 w-8 rounded-lg ring-1 ring-[#00d4ff]/20" />
+                <Image src={profile.photoURL} alt={profile.callsign} width={32} height={32} className="h-8 w-8 rounded-lg ring-1 ring-[#00d4ff]/20 object-cover" />
                 <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#10b981] border-2 border-[#050508]" />
               </div>
             ) : (
@@ -163,7 +164,7 @@ export default function Sidebar() {
               <button
                 onClick={toggleV2}
                 className={clsx(
-                  "p-1.5 rounded-lg text-[9px] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-200",
+                  "p-2 rounded-lg text-[9px] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-200",
                   isV2
                     ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                     : "bg-white/[0.02] text-gray-600 border border-white/[0.04] hover:border-white/[0.08]"
@@ -183,7 +184,7 @@ export default function Sidebar() {
               <button
                 onClick={toggleV2}
                 className={clsx(
-                  "p-1.5 rounded-lg text-[8px] font-[family-name:var(--font-mono)] transition-all duration-200",
+                  "p-2 rounded-lg text-[8px] font-[family-name:var(--font-mono)] transition-all duration-200",
                   isV2
                     ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                     : "bg-white/[0.02] text-gray-600 border border-white/[0.04]"
@@ -219,4 +220,4 @@ export default function Sidebar() {
       </div>
     </aside>
   );
-}
+})

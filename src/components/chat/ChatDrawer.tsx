@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, useChatStore } from "@/store";
@@ -23,10 +23,13 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-export default function ChatDrawer() {
+export default memo(function ChatDrawer() {
   const { user } = useAuth();
-  const { profile } = useAppStore();
-  const { showDrawer, setDrawerOpen, activeConversationId, setActiveConversation } = useChatStore();
+  const profile = useAppStore(s => s.profile);
+  const showDrawer = useChatStore(s => s.showDrawer);
+  const setDrawerOpen = useChatStore(s => s.setDrawerOpen);
+  const activeConversationId = useChatStore(s => s.activeConversationId);
+  const setActiveConversation = useChatStore(s => s.setActiveConversation);
   const { conversations } = useConversations(user?.uid);
   const { messages } = useMessages(activeConversationId ?? undefined);
   const { typers, startTyping, stopTyping } = useTyping(
@@ -61,6 +64,7 @@ export default function ChatDrawer() {
 
   const handleSend = async () => {
     if (!input.trim() || !user || !profile || !activeConversationId) return;
+    if (!navigator.onLine) return;
     const text = input;
     setInput("");
     stopTyping();
@@ -88,7 +92,8 @@ export default function ChatDrawer() {
       {/* FAB */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="fixed bottom-24 right-4 lg:bottom-6 lg:right-6 z-40 h-12 w-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#6b21a8] flex items-center justify-center shadow-lg shadow-[#a855f7]/20 hover:shadow-[#a855f7]/40 transition-all duration-300 hover:scale-105"
+        className="fixed right-4 lg:right-6 z-40 h-12 w-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#6b21a8] flex items-center justify-center shadow-lg shadow-[#a855f7]/20 hover:shadow-[#a855f7]/40 transition-all duration-300 hover:scale-105"
+        style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}
       >
         <MessageSquare className="h-5 w-5 text-white" strokeWidth={2.5} />
         {unreadCount > 0 && (
@@ -117,10 +122,20 @@ export default function ChatDrawer() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 200 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.x > 80 || info.velocity.x > 500) {
+                  setDrawerOpen(false);
+                  setActiveConversation(null);
+                }
+              }}
               className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
               style={{
                 background: "rgba(5, 5, 8, 0.98)",
                 borderLeft: "1px solid rgba(168, 85, 247, 0.1)",
+                paddingTop: "env(safe-area-inset-top)",
               }}
             >
               {/* Header */}
@@ -129,7 +144,7 @@ export default function ChatDrawer() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setActiveConversation(null)}
-                      className="text-gray-500 hover:text-white transition-colors"
+                      className="p-2 -ml-2 text-gray-500 hover:text-white transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -156,7 +171,7 @@ export default function ChatDrawer() {
                   {!activeConversationId && (
                     <button
                       onClick={() => setShowGroupModal(true)}
-                      className="p-1.5 rounded-lg hover:bg-white/[0.04] text-gray-500 hover:text-[#a855f7] transition-colors"
+                      className="p-2 rounded-lg hover:bg-white/[0.04] text-gray-500 hover:text-[#a855f7] transition-colors"
                       title="New Group"
                     >
                       <Plus className="h-4 w-4" />
@@ -167,7 +182,7 @@ export default function ChatDrawer() {
                       setDrawerOpen(false);
                       setActiveConversation(null);
                     }}
-                    className="text-gray-500 hover:text-white transition-colors"
+                    className="p-2 -mr-2 text-gray-500 hover:text-white transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -263,7 +278,7 @@ export default function ChatDrawer() {
                     )}
                   </AnimatePresence>
 
-                  <div className="px-3 py-3 border-t border-white/[0.06]">
+                  <div className="px-3 py-3 border-t border-white/[0.06]" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
                     <div className="flex items-center gap-2">
                       <input
                         ref={inputRef}
@@ -301,4 +316,4 @@ export default function ChatDrawer() {
       />
     </>
   );
-}
+})

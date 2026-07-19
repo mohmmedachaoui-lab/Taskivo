@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/xp-engine";
 import { addActivityFeedItem } from "@/lib/social";
 import { applyXPTransaction } from "@/lib/profiles";
+import { requireOnline } from "@/lib/requireOnline";
 import { doc, runTransaction, increment } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import EmptyState from "@/components/ui/EmptyState";
@@ -42,7 +44,8 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; color: string; bg: 
 
 export default function TasksPage() {
   const { user } = useAuth();
-  const { profile, setProfile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const setProfile = useAppStore(s => s.setProfile);
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks(user?.uid);
   const [showAdd, setShowAdd] = useState(false);
@@ -59,10 +62,13 @@ export default function TasksPage() {
         await toggleTask(id);
         return;
       }
+      if (!requireOnline()) return;
       await toggleTask(id);
 
+      const isEarlyBird = new Date().getHours() < 8;
       const { newTotalXP } = await applyXPTransaction(user.uid, task.xpAwarded, {
         tasksCompleted: increment(1),
+        ...(isEarlyBird ? { earlyBirdTasks: increment(1) } : {}),
       });
       setProfile({ ...profile, totalXP: newTotalXP });
 
@@ -80,6 +86,7 @@ export default function TasksPage() {
 
   const handleAdd = useCallback(async () => {
     if (!newTitle.trim()) return;
+    if (!requireOnline()) return;
     const xp = calculateWinXP(newDiff, level);
     const deadline = deadlineDays > 0 ? now + deadlineDays * 24 * 60 * 60 * 1000 : null;
     await addTask(newTitle.trim(), newDiff, xp, deadline);
@@ -87,6 +94,11 @@ export default function TasksPage() {
     setDeadlineDays(0);
     setShowAdd(false);
   }, [newTitle, newDiff, level, deadlineDays, now, addTask]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    if (!requireOnline()) return;
+    await deleteTask(id);
+  }, [deleteTask]);
 
   const checkDeadlines = useCallback(async () => {
     const currentTime = Date.now();
@@ -176,7 +188,22 @@ export default function TasksPage() {
         </Button>
       </div>
 
-      {failedTasks.length > 0 && (
+      {loading && (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[72px] w-full" />
+          ))}
+        </div>
+      )}
+
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="space-y-8"
+        >
+          {failedTasks.length > 0 && (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <Card className="border-red-500/30 bg-red-500/5">
             <div className="flex items-center gap-3">
@@ -286,7 +313,7 @@ export default function TasksPage() {
                     <span className="flex items-center gap-1 text-xs text-[#00d4ff] font-medium">
                       <Zap className="h-3 w-3" />+{task.xpAwarded} XP
                     </span>
-                    <button onClick={() => deleteTask(task.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <button onClick={() => handleDelete(task.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </Card>
@@ -312,7 +339,7 @@ export default function TasksPage() {
                 <span className="text-xs text-red-400 font-medium flex items-center gap-1">
                   <Zap className="h-3 w-3" />-{calculateMissedTaskPenalty(task.difficulty, level)} XP
                 </span>
-                <button onClick={() => deleteTask(task.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                <button onClick={() => handleDelete(task.id)} className="text-gray-500 hover:text-red-400 transition-colors">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </Card>
@@ -336,7 +363,7 @@ export default function TasksPage() {
                 <span className="text-xs text-green-400 font-medium flex items-center gap-1">
                   <Zap className="h-3 w-3" />+{task.xpAwarded} XP
                 </span>
-                <button onClick={() => deleteTask(task.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                <button onClick={() => handleDelete(task.id)} className="text-gray-500 hover:text-red-400 transition-colors">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </Card>
@@ -345,7 +372,7 @@ export default function TasksPage() {
         </div>
       )}
 
-      {tasks.length === 0 && !loading && (
+      {tasks.length === 0 && (
         <EmptyState
           icon={<Flame className="h-8 w-8" strokeWidth={2.5} />}
           title="No active missions"
@@ -354,6 +381,8 @@ export default function TasksPage() {
           actionLabel="Create First Task"
           onAction={() => setShowAdd(true)}
         />
+      )}
+        </motion.div>
       )}
     </div>
   );

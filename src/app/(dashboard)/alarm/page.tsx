@@ -17,6 +17,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
+import { requireOnline } from "@/lib/requireOnline";
 import { AlarmClock, Plus, Trash2, Clock, Settings2 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -111,17 +112,17 @@ export default function AlarmPage() {
   }, [showChallenge]);
 
   const toggleAlarm = async (id: string, currentActive: boolean) => {
-    if (!user) return;
+    if (!user || !requireOnline()) return;
     await updateDoc(doc(getFirebaseDb(), "alarms", id), { active: !currentActive });
   };
 
   const deleteAlarm = async (id: string) => {
-    if (!user) return;
+    if (!user || !requireOnline()) return;
     await deleteDoc(doc(getFirebaseDb(), "alarms", id));
   };
 
   const addAlarm = async () => {
-    if (!newLabel.trim() || !user) return;
+    if (!newLabel.trim() || !user || !requireOnline()) return;
     const ref = doc(collection(getFirebaseDb(), "alarms"));
     await setDoc(ref, {
       uid: user.uid,

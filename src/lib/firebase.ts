@@ -1,7 +1,7 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getMessaging, type Messaging } from "firebase/messaging";
+import type { Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -49,10 +49,11 @@ export function getGoogleProvider(): GoogleAuthProvider {
   return provider;
 }
 
-export function getFirebaseMessaging(): Messaging | null {
+export async function getFirebaseMessaging(): Promise<Messaging | null> {
   if (typeof window === "undefined") return null;
   try {
     if (!messaging) {
+      const { getMessaging } = await import("firebase/messaging");
       messaging = getMessaging(getApp());
     }
     return messaging;

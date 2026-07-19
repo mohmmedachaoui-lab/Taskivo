@@ -116,6 +116,7 @@ export async function respondFriendRequest(
     const friendshipRef = doc(collection(db(), "friendships"));
     await setDoc(friendshipRef, {
       id: friendshipRef.id,
+      requestId: requestId,
       uid1: req.fromUid,
       uid2: req.toUid,
       createdAt: Date.now(),
@@ -295,18 +296,22 @@ export async function resolveDuel(duelId: string): Promise<void> {
 
   const actualPenalty = await runTransaction(db(), async (transaction) => {
     const duelRef = doc(db(), "duels", duelId);
-    const winnerRef = doc(db(), "stats", winnerId);
-    const loserRef = doc(db(), "stats", loserId);
-    const [currentDuel, winnerSnap, loserSnap] = await Promise.all([
+    const winnerStatsRef = doc(db(), "stats", winnerId);
+    const loserStatsRef = doc(db(), "stats", loserId);
+    const winnerUserRef = doc(db(), "users", winnerId);
+    const loserUserRef = doc(db(), "users", loserId);
+    const [currentDuel, winnerStatsSnap, loserStatsSnap, winnerUserSnap, loserUserSnap] = await Promise.all([
       transaction.get(duelRef),
-      transaction.get(winnerRef),
-      transaction.get(loserRef),
+      transaction.get(winnerStatsRef),
+      transaction.get(loserStatsRef),
+      transaction.get(winnerUserRef),
+      transaction.get(loserUserRef),
     ]);
 
     if (!currentDuel.exists()) return 0;
     if ((currentDuel.data()?.status as string) === "completed") return 0;
 
-    const loserXP = loserSnap.data()?.totalXP ?? 0;
+    const loserXP = loserUserSnap.data()?.totalXP ?? 0;
     const cappedPenalty = Math.min(stake, loserXP);
 
     transaction.update(duelRef, {
@@ -314,15 +319,30 @@ export async function resolveDuel(duelId: string): Promise<void> {
       winnerId,
     });
 
-    transaction.update(winnerRef, {
+    transaction.update(winnerStatsRef, {
       totalXP: increment(stake),
-      duelsWon: (winnerSnap.data()?.duelsWon ?? 0) + 1,
+      duelsWon: (winnerStatsSnap.data()?.duelsWon ?? 0) + 1,
     });
 
-    transaction.update(loserRef, {
+    transaction.update(loserStatsRef, {
       totalXP: increment(-cappedPenalty),
       xpLost: increment(cappedPenalty),
     });
+
+    if (winnerUserSnap.exists()) {
+      transaction.update(winnerUserRef, {
+        totalXP: increment(stake),
+        level: Math.floor(((winnerUserSnap.data()?.totalXP ?? 0) + stake) / 500) + 1,
+      });
+    }
+
+    if (loserUserSnap.exists()) {
+      const newLoserXP = Math.max(0, (loserUserSnap.data()?.totalXP ?? 0) - cappedPenalty);
+      transaction.update(loserUserRef, {
+        totalXP: increment(-cappedPenalty),
+        level: Math.floor(newLoserXP / 500) + 1,
+      });
+    }
 
     return cappedPenalty;
   });
@@ -357,6 +377,7 @@ export async function resolveDuel(duelId: string): Promise<void> {
   await addActivityFeedItem(loserId, loserCallsign, "duel_lost", `Lost a duel to ${winnerCallsign}`, -actualPenalty);
 
   await checkAndUnlockAchievements(winnerId);
+  await checkAndUnlockAchievements(loserId);
 }
 
 export async function getUserDuels(uid: string): Promise<Duel[]> {

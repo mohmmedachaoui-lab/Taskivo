@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
@@ -19,8 +20,9 @@ interface FriendProfileCardProps {
 
 export default function FriendProfileCard({ uid, onClose }: FriendProfileCardProps) {
   const { user } = useAuth();
-  const { profile } = useAppStore();
-  const { setActiveConversation, setDrawerOpen } = useChatStore();
+  const profile = useAppStore(s => s.profile);
+  const setActiveConversation = useChatStore(s => s.setActiveConversation);
+  const setDrawerOpen = useChatStore(s => s.setDrawerOpen);
   const [data, setData] = useState<{ uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number; totalXP: number } | null>(null);
   const [stats, setStats] = useState<{ tasksCompleted: number; duelsWon: number; currentStreak: number; achievements: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,13 +93,21 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.3}
+        onDragEnd={(_, info) => {
+          if (info.offset.y > 60 || info.velocity.y > 300) {
+            onClose();
+          }
+        }}
         className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto z-[60] glass neon-border rounded-2xl p-5"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]">
             Agent Profile
           </h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="p-2 -mr-2 text-gray-500 hover:text-white transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -106,7 +116,7 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
         <div className="flex items-center gap-4 mb-4">
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#6b21a8] flex items-center justify-center shadow-lg shadow-[#a855f7]/20">
             {data.photoURL ? (
-              <img src={data.photoURL} alt={data.callsign} className="h-14 w-14 rounded-2xl object-cover" />
+              <Image src={data.photoURL} alt={data.callsign} width={56} height={56} className="h-14 w-14 rounded-2xl object-cover" />
             ) : (
               <span className="text-white font-bold text-xl">{data.callsign[0]?.toUpperCase()}</span>
             )}

@@ -69,9 +69,11 @@ service cloud.firestore {
         resource.data.uid2 == request.auth.uid
       );
       allow create: if request.auth != null && (
-        request.resource.data.uid1 == request.auth.uid ||
-        request.resource.data.uid2 == request.auth.uid
-      );
+        request.auth.uid == request.resource.data.uid1 ||
+        request.auth.uid == request.resource.data.uid2
+      ) && exists(
+        /databases/$(database)/documents/friendRequests/$(request.resource.data.requestId)
+      ) && get(/databases/$(database)/documents/friendRequests/$(request.resource.data.requestId)).data.status == "accepted";
       allow update: if false;
       allow delete: if request.auth != null && (
         resource.data.uid1 == request.auth.uid ||
@@ -89,6 +91,16 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         resource.data.challengerId == request.auth.uid ||
         resource.data.opponentId == request.auth.uid
+      ) && (
+        // Accept: opponent accepts duel, only status and startTime change, all other fields unchanged
+        (request.auth.uid == resource.data.opponentId
+          && request.resource.data.status == "active"
+          && request.resource.data.startTime == request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "startTime"]))
+        ||
+        // XP submission: participants update only XP fields
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["challengerXP", "opponentXP"]))
       );
       allow delete: if false;
     }
@@ -136,7 +148,8 @@ service cloud.firestore {
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
         allow create: if request.auth != null && request.auth.uid == request.resource.data.senderUid;
         allow update: if request.auth != null && request.auth.uid in
-          get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.members
+          && request.auth.uid == resource.data.senderUid;
         allow delete: if false;
       }
 

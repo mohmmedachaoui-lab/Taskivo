@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { ChatMessage } from "@/types";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
 import { clsx } from "clsx";
@@ -10,7 +11,7 @@ interface MessageBubbleProps {
   showSender: boolean;
 }
 
-export default function MessageBubble({ message, isOwn, showSender }: MessageBubbleProps) {
+export default memo(function MessageBubble({ message, isOwn, showSender }: MessageBubbleProps) {
   const now = useCurrentTime(60000);
   const timeAgo = (() => {
     const diff = now - message.timestamp;
@@ -44,4 +45,4 @@ export default function MessageBubble({ message, isOwn, showSender }: MessageBub
       </span>
     </div>
   );
-}
+})

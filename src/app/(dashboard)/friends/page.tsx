@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
@@ -16,6 +18,7 @@ import {
   removeFriend,
 } from "@/lib/social";
 import { getPublicProfiles } from "@/lib/profiles";
+import { requireOnline } from "@/lib/requireOnline";
 import FriendProfileCard from "@/components/friends/FriendProfileCard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { FriendRequest, FriendProfile } from "@/types";
@@ -36,7 +39,7 @@ type Tab = "friends" | "requests" | "search";
 
 export default function FriendsPage() {
   const { user } = useAuth();
-  const { profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
   const [activeTab, setActiveTab] = useState<Tab>("friends");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<
@@ -85,7 +88,7 @@ export default function FriendsPage() {
   }, [loadFriends]);
 
   const handleRemoveFriend = async () => {
-    if (!user || !removeTarget) return;
+    if (!user || !removeTarget || !requireOnline()) return;
     setRemoving(true);
     try {
       const result = await removeFriend(user.uid, removeTarget.uid);
@@ -119,7 +122,7 @@ export default function FriendsPage() {
   };
 
   const handleSendRequest = async (targetUid: string) => {
-    if (!user || !profile) return;
+    if (!user || !profile || !requireOnline()) return;
     const result = await sendFriendRequest(user.uid, profile.callsign, profile.photoURL, targetUid);
     setSearchResults((prev) =>
       prev.map((r) =>
@@ -129,6 +132,7 @@ export default function FriendsPage() {
   };
 
   const handleRespond = async (requestId: string, accept: boolean) => {
+    if (!requireOnline()) return;
     await respondFriendRequest(requestId, accept);
     loadFriends();
   };
@@ -268,7 +272,21 @@ export default function FriendsPage() {
       {/* Tab Content */}
       {activeTab === "friends" && (
         <div>
-          {friends.length === 0 && !loading ? (
+          {loading && (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
+                  <Skeleton className="h-10 w-10 rounded-xl flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-28" />
+                    <Skeleton className="h-2.5 w-36" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && friends.length === 0 && (
             <EmptyState
               icon={<Users className="h-8 w-8" strokeWidth={2.5} />}
               title="No squad members yet"
@@ -277,7 +295,9 @@ export default function FriendsPage() {
               actionLabel="Find Agents"
               onAction={() => setActiveTab("search")}
             />
-          ) : (
+          )}
+
+          {!loading && friends.length > 0 && (
             <div className="space-y-2">
               {[...friends]
                 .sort((a, b) => b.totalXP - a.totalXP)
@@ -294,9 +314,11 @@ export default function FriendsPage() {
                     >
                       <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#6b21a8] flex items-center justify-center flex-shrink-0">
                         {friend.photoURL ? (
-                          <img
+                          <Image
                             src={friend.photoURL}
                             alt={friend.callsign}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 rounded-xl object-cover"
                           />
                         ) : (

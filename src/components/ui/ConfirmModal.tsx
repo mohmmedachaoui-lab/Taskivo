@@ -40,6 +40,14 @@ export default function ConfirmModal({
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.3}
+        onDragEnd={(_, info) => {
+          if (info.offset.y > 60 || info.velocity.y > 300) {
+            onCancel();
+          }
+        }}
         className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[70] glass neon-border rounded-2xl p-5"
       >
         <div className="flex items-center gap-3 mb-3">

@@ -15,7 +15,7 @@ export default function FloatingActions() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50">
+    <div className="fixed right-4 lg:right-8 z-50" style={{ bottom: "calc(6rem + env(safe-area-inset-bottom))" }}>
       <AnimatePresence>
         {open && (
           <motion.div

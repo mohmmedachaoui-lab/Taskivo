@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
@@ -34,9 +34,9 @@ const STEPS = [
   },
 ] as const;
 
-export default function OnboardingChecklist() {
+export default memo(function OnboardingChecklist() {
   const { user } = useAuth();
-  const { stats } = useAppStore();
+  const stats = useAppStore(s => s.stats);
   const [dismissed, setDismissed] = useState(false);
   const [open, setOpen] = useState(true);
 
@@ -114,16 +114,20 @@ export default function OnboardingChecklist() {
             </div>
 
             <div className="space-y-1.5">
-              {STEPS.map((step, i) => (
-                <Link
-                  key={step.id}
-                  href={step.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                    completed[i]
-                      ? "opacity-50"
-                      : "hover:bg-white/[0.02]"
-                  }`}
-                >
+              {STEPS.map((step, i) => {
+                const isFirstIncomplete = !completed[i] && completed.slice(0, i).every((c) => c);
+                return (
+                  <Link
+                    key={step.id}
+                    href={step.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                      completed[i]
+                        ? "opacity-50"
+                        : isFirstIncomplete
+                          ? "bg-[#a855f7]/[0.06] ring-1 ring-[#a855f7]/15"
+                          : "hover:bg-white/[0.02]"
+                    }`}
+                  >
                   {completed[i] ? (
                     <CheckCircle2 className="h-4 w-4 text-[#10b981] flex-shrink-0" />
                   ) : (
@@ -141,11 +145,12 @@ export default function OnboardingChecklist() {
                     </span>
                   )}
                 </Link>
-              ))}
+              );
+              })}
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-}
+})

@@ -30,6 +30,7 @@ export interface UserStats {
   xpLost: number;
   duelsWon: number;
   focusSessions: number;
+  earlyBirdTasks: number;
 }
 
 export interface Task {

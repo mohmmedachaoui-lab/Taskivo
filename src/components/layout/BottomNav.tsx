@@ -33,6 +33,7 @@ export default function BottomNav() {
         background: "rgba(2, 8, 23, 0.95)",
         backdropFilter: "blur(20px)",
         borderTop: "1px solid rgba(0, 212, 255, 0.1)",
+        paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
       {/* Top neon line */}
@@ -46,7 +47,7 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={clsx(
-                "flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[9px] font-medium transition-all duration-200 font-[family-name:var(--font-mono)]",
+                "flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg text-[9px] font-medium transition-all duration-200 font-[family-name:var(--font-mono)]",
                 isActive
                   ? "text-[#00d4ff]"
                   : "text-gray-600"
@@ -54,7 +55,7 @@ export default function BottomNav() {
             >
               <div
                 className={clsx(
-                  "p-1.5 rounded-lg transition-all duration-200",
+                  "p-2 rounded-lg transition-all duration-200",
                   isActive && "bg-[#00d4ff]/10 shadow-[0_0_10px_rgba(0,212,255,0.2)]"
                 )}
               >

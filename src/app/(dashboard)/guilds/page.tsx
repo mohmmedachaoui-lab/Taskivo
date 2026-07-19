@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import {
@@ -17,6 +18,7 @@ import {
   kickMember,
 } from "@/lib/social";
 import { Guild, GuildNews } from "@/types";
+import { requireOnline } from "@/lib/requireOnline";
 import {
   Gamepad2,
   Plus,
@@ -32,9 +34,86 @@ import {
 } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
 
+function GuildsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-3 w-72 mt-2" />
+        </div>
+        <Skeleton className="h-10 w-32 rounded-xl" />
+      </div>
+
+      <Card className="border-[#00d4ff]/20 bg-[#00d4ff]/5">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="h-16 w-16 shimmer rounded-2xl bg-white/[0.03]" />
+          <div className="flex-1">
+            <Skeleton className="h-5 w-40 mb-1.5" />
+            <Skeleton className="h-3 w-52 mb-2" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          <Skeleton className="h-7 w-20 rounded-full" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-28" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-3.5 w-24 mb-1" />
+                  <Skeleton className="h-2.5 w-12" />
+                </div>
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/30">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-3.5 flex-1" />
+                <Skeleton className="h-2.5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="flex items-center gap-4">
+              <Skeleton className="h-5 w-6" />
+              <div className="h-10 w-10 shimmer rounded-xl bg-white/[0.03]" />
+              <div className="flex-1 min-w-0">
+                <Skeleton className="h-4 w-32 mb-1" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GuildsPage() {
   const { user } = useAuth();
-  const { profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
   const [guilds, setGuilds] = useState<Guild[]>([]);
   const [myGuild, setMyGuild] = useState<Guild | null>(null);
   const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number; level: number }[]>([]);
@@ -76,8 +155,10 @@ export default function GuildsPage() {
     loadData();
   }, [loadData]);
 
+  if (loading) return <GuildsSkeleton />;
+
   const handleCreate = async () => {
-    if (!user || !newName.trim()) return;
+    if (!user || !newName.trim() || !requireOnline()) return;
     setCreating(true);
     try {
       await createGuild(user.uid, newName, newDesc, profile?.callsign ?? "Owner");
@@ -92,19 +173,19 @@ export default function GuildsPage() {
   };
 
   const handleJoin = async (guildId: string) => {
-    if (!user) return;
+    if (!user || !requireOnline()) return;
     await joinGuild(user.uid, guildId, profile?.callsign ?? "New Member");
     await loadData();
   };
 
   const handleLeave = async () => {
-    if (!user || !myGuild) return;
+    if (!user || !myGuild || !requireOnline()) return;
     await leaveGuild(user.uid, myGuild.id, profile?.callsign ?? "Member");
     await loadData();
   };
 
   const handleKick = async (targetUid: string, targetCallsign: string) => {
-    if (!user || !myGuild) return;
+    if (!user || !myGuild || !requireOnline()) return;
     if (!confirm(`Kick ${targetCallsign} from the guild?`)) return;
     await kickMember(user.uid, myGuild.id, targetUid, targetCallsign);
     await loadData();
@@ -313,11 +394,7 @@ export default function GuildsPage() {
           </h3>
           <span className="text-xs text-gray-600">{guilds.length} guilds</span>
         </div>
-        {loading ? (
-          <Card className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
-          </Card>
-        ) : guilds.length === 0 ? (
+        {guilds.length === 0 ? (
           <EmptyState
             icon={<Gamepad2 className="h-8 w-8" strokeWidth={2.5} />}
             title="No guilds found"

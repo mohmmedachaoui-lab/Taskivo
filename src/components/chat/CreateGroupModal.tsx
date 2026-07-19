@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
@@ -23,8 +24,9 @@ interface FriendInfo {
 
 export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
   const { user } = useAuth();
-  const { profile } = useAppStore();
-  const { setActiveConversation, setDrawerOpen } = useChatStore();
+  const profile = useAppStore(s => s.profile);
+  const setActiveConversation = useChatStore(s => s.setActiveConversation);
+  const setDrawerOpen = useChatStore(s => s.setDrawerOpen);
   const { friendUids } = useFriends(user?.uid);
   const [friendProfiles, setFriendProfiles] = useState<FriendInfo[]>([]);
   const [groupName, setGroupName] = useState("");
@@ -98,6 +100,14 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.3}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 60 || info.velocity.y > 300) {
+                onClose();
+              }
+            }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto z-[60] glass neon-border rounded-2xl p-5"
           >
             <div className="flex items-center justify-between mb-4">
@@ -107,7 +117,7 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                   New Group
                 </h3>
               </div>
-              <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+              <button onClick={onClose} className="p-2 -mr-2 text-gray-500 hover:text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -136,7 +146,7 @@ export default function CreateGroupModal({ isOpen, onClose }: CreateGroupModalPr
                   >
                     <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#a855f7] to-[#6b21a8] flex items-center justify-center flex-shrink-0">
                       {friend.photoURL ? (
-                        <img src={friend.photoURL} alt="" className="h-7 w-7 rounded-full object-cover" />
+                        <Image src={friend.photoURL} alt="" width={28} height={28} className="h-7 w-7 rounded-full object-cover" />
                       ) : (
                         <span className="text-white text-[10px] font-bold">
                           {friend.callsign[0]?.toUpperCase()}

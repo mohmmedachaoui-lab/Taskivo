@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getFirebaseDb, getFirebaseMessaging } from "@/lib/firebase";
-import { getToken, onMessage } from "firebase/messaging";
 import { useAuth } from "@/hooks/useAuth";
 
 export function useFCMNotifications() {
@@ -25,9 +24,10 @@ export function useFCMNotifications() {
       setPermission(result);
 
       if (result === "granted") {
-        const messaging = getFirebaseMessaging();
+        const messaging = await getFirebaseMessaging();
         if (!messaging) return;
 
+        const { getToken } = await import("firebase/messaging");
         const token = await getToken(messaging, {
           vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
         });
@@ -47,20 +47,24 @@ export function useFCMNotifications() {
   useEffect(() => {
     if (!user || permission !== "granted") return;
 
-    const messaging = getFirebaseMessaging();
-    if (!messaging) return;
+    let unsubscribe: (() => void) | undefined;
 
-    const unsubscribe = onMessage(messaging, (payload) => {
-      // Show in-app notification (browser notification)
-      if (Notification.permission === "granted") {
-        new Notification(payload.notification?.title ?? "Taskivo", {
-          body: payload.notification?.body,
-          icon: "/favicon.ico",
-        });
-      }
-    });
+    (async () => {
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) return;
 
-    return () => unsubscribe();
+      const { onMessage } = await import("firebase/messaging");
+      unsubscribe = onMessage(messaging, (payload) => {
+        if (Notification.permission === "granted") {
+          new Notification(payload.notification?.title ?? "Taskivo", {
+            body: payload.notification?.body,
+            icon: "/favicon.ico",
+          });
+        }
+      });
+    })();
+
+    return () => unsubscribe?.();
   }, [user, permission]);
 
   return { supported, permission, requestPermission };

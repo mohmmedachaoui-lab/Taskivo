@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, memo } from "react";
 import { useAppStore } from "@/store";
 
 interface DarkModeV2ContextType {
@@ -17,8 +17,8 @@ export function useDarkModeV2() {
   return useContext(DarkModeV2Context);
 }
 
-export function DarkModeV2Provider({ children }: { children: ReactNode }) {
-  const { profile } = useAppStore();
+export const DarkModeV2Provider = memo(function DarkModeV2Provider({ children }: { children: ReactNode }) {
+  const profile = useAppStore(s => s.profile);
   const [isV2, setIsV2] = useState(false);
   const unlocked = profile?.overrideUnlocked ?? false;
 
@@ -42,4 +42,4 @@ export function DarkModeV2Provider({ children }: { children: ReactNode }) {
       {children}
     </DarkModeV2Context.Provider>
   );
-}
+})

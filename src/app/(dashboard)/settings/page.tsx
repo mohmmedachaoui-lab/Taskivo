@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Card from "@/components/ui/Card";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAppStore } from "@/store";
@@ -26,7 +27,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
-  const { profile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
   const { user } = useAuth();
   const router = useRouter();
   const level = profile ? calculateLevel(profile.totalXP) : 1;
@@ -106,7 +107,7 @@ export default function SettingsPage() {
       {/* Profile Card */}
       <Card className="flex items-center gap-6">
         {user?.photoURL ? (
-          <img src={user.photoURL} alt={profile?.callsign} className="h-20 w-20 rounded-2xl" />
+          <Image src={user.photoURL} alt={profile?.callsign ?? ""} width={80} height={80} className="h-20 w-20 rounded-2xl object-cover" />
         ) : (
           <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
             <User className="h-10 w-10 text-white" />

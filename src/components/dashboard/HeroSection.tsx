@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel, calculateXPProgress, getRankTitle } from "@/lib/xp-engine";
@@ -15,9 +16,10 @@ const ICON_MAP: Record<string, typeof Zap> = {
   Flame, Clock, Swords, Timer, TrendingUp, AlertTriangle, Target, Crown, Trophy, Zap,
 };
 
-export default function HeroSection() {
+export default memo(function HeroSection() {
   const { user } = useAuth();
-  const { profile, stats } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const stats = useAppStore(s => s.stats);
   const { friendUids } = useFriends(user?.uid);
   const { activeDuels } = useRealtimeDuels(user?.uid);
   const { feed } = useRealtimeFeed(user?.uid, friendUids);
@@ -129,4 +131,4 @@ export default function HeroSection() {
       </div>
     </div>
   );
-}
+})

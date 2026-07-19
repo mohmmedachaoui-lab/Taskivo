@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, RotateCcw, Coffee, Zap, Flame, Trophy } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -21,9 +21,10 @@ const MODES = {
 
 const XP_PER_SESSION = 50;
 
-export default function FocusTimer() {
+export default memo(function FocusTimer() {
   const { user } = useAuth();
-  const { profile, setProfile } = useAppStore();
+  const profile = useAppStore(s => s.profile);
+  const setProfile = useAppStore(s => s.setProfile);
   const [mode, setMode] = useState<Mode>("work");
   const [timeLeft, setTimeLeft] = useState(MODES.work.duration);
   const [isRunning, setIsRunning] = useState(false);
@@ -257,4 +258,4 @@ export default function FocusTimer() {
       )}
     </div>
   );
-}
+})
