@@ -40,6 +40,8 @@ export function useTasks(uid: string | undefined) {
       (snap) => {
         const items: Task[] = snap.docs.map((d) => {
           const data = d.data();
+          const subtasks = (data.subtasks as Array<Record<string, unknown>>) ?? [];
+          const done = subtasks.filter((s) => s.done === true).length;
           return {
             id: d.id,
             uid: data.uid,
@@ -52,6 +54,8 @@ export function useTasks(uid: string | undefined) {
             completedAt: data.completedAt ?? null,
             xpAwarded: data.xpAwarded ?? 0,
             urgent: data.urgent ?? false,
+            totalSubtasks: subtasks.length || 1,
+            completedSubtasks: done,
           };
         });
         setTasks(items);

@@ -94,7 +94,7 @@ export default function DashboardPage() {
   const totalXP = profile?.totalXP ?? 0;
 
   const allDuels = [...activeDuels, ...pendingDuels];
-  const activeTasks = tasks.filter((t) => !t.completed);
+  const activeTasks = tasks.filter((t) => t.completedSubtasks < t.totalSubtasks);
   const now = useCurrentTime(60000);
 
   const getRelativeTime = (ts: number) => {
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                 <AnimatePresence mode="popLayout">
                   {activeTasks.slice(0, 8).map((task) => {
-                    const pct = task.completed ? 100 : 0;
+                    const pct = task.totalSubtasks > 0 ? Math.round((task.completedSubtasks / task.totalSubtasks) * 100) : 0;
                     return (
                       <motion.div
                         key={task.id}

@@ -44,6 +44,8 @@ export interface Task {
   completedAt: number | null;
   xpAwarded: number;
   urgent?: boolean;
+  totalSubtasks: number;
+  completedSubtasks: number;
 }
 
 export interface Guild {

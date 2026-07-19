@@ -13,8 +13,8 @@ interface FeaturedPreviewData {
   urgent?: boolean;
   title?: string;
   description?: string;
-  total?: number;
-  completed?: number;
+  totalSubtasks?: number;
+  completedSubtasks?: number;
   tasks?: FeaturedPreviewSubtask[];
   status?: string;
   opponent?: string;
@@ -83,14 +83,14 @@ export default function FeaturedPreview({ type, data, onClose }: FeaturedPreview
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] text-gray-500 font-[family-name:var(--font-mono)]">Progress</span>
                 <span className="text-[10px] text-[#00d4ff] font-[family-name:var(--font-mono)]">
-                  {(d.total ?? 0) > 0 ? Math.round(((d.completed ?? 0) / (d.total ?? 1)) * 100) : 0}%
+                  {(d.totalSubtasks ?? 0) > 0 ? Math.round(((d.completedSubtasks ?? 0) / (d.totalSubtasks ?? 1)) * 100) : 0}%
                 </span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${(d.total ?? 0) > 0 ? ((d.completed ?? 0) / (d.total ?? 1)) * 100 : 0}%`,
+                    width: `${(d.totalSubtasks ?? 0) > 0 ? ((d.completedSubtasks ?? 0) / (d.totalSubtasks ?? 1)) * 100 : 0}%`,
                     background: "linear-gradient(90deg, #00d4ff, #3b82f6)",
                   }}
                 />
