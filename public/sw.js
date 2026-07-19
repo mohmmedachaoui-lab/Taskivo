@@ -1,21 +1,32 @@
 const CACHE_NAME = "taskivo-shell-v1";
-const STATIC_ASSETS = [
-  "/dashboard",
-  "/tasks",
-  "/friends",
-  "/duels",
-  "/guilds",
-  "/achievements",
-  "/stats",
-  "/focus",
-  "/alarm",
-  "/settings",
-  "/ai-agent",
+
+// Only actual static files to pre-cache — NEVER HTML routes
+const PRECACHE_ASSETS = [
+  "/icon-192.png",
+  "/icon-512.png",
+  "/apple-touch-icon.png",
+  "/manifest.json",
+];
+
+// Domains that must ALWAYS go to network — never cached, never delayed
+const BYPASS_DOMAINS = [
+  "firestore.googleapis.com",
+  "firebaseio.com",
+  "identitytoolkit.googleapis.com",
+  "securetoken.googleapis.com",
+  "firebaseauth.googleapis.com",
+  "www.googleapis.com",
+  "accounts.google.com",
+  "www.gstatic.com",
+  "firebaseapp.com",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .catch(() => {})
   );
   self.skipWaiting();
 });
@@ -34,30 +45,33 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { url } = event.request;
 
-  // Never cache Firestore, Firebase Auth, or API calls
-  if (
-    url.includes("firestore.googleapis.com") ||
-    url.includes("firebaseio.com") ||
-    url.includes("identitytoolkit.googleapis.com") ||
-    url.includes("securetoken.googleapis.com") ||
-    url.startsWith(self.location.origin + "/api/")
-  ) {
+  // 1. Bypass ALL cross-origin Firebase/Google requests — always network, no exceptions
+  try {
+    const reqUrl = new URL(url);
+    if (BYPASS_DOMAINS.some((d) => reqUrl.hostname === d || reqUrl.hostname.endsWith("." + d))) {
+      return; // SW does not touch this request at all
+    }
+  } catch {
+    // Malformed URL — skip
     return;
   }
 
-  // Network-first for same-origin navigation
+  // 2. Bypass API routes
+  if (url.startsWith(self.location.origin + "/api/")) {
+    return;
+  }
+
+  // 3. Same-origin navigation: network-only, never serve cached HTML
   if (
     event.request.mode === "navigate" &&
     url.startsWith(self.location.origin)
   ) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
+    event.respondWith(fetch(event.request));
     return;
   }
 
-  // Cache-first for static assets (JS/CSS/fonts/images from _next)
-  if (url.includes("/_next/") || url.match(/\.(css|js|woff2?|png|jpg|svg|ico)$/)) {
+  // 4. Cache-first ONLY for _next static assets (immutable hashed files)
+  if (url.includes("/_next/")) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
@@ -73,8 +87,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else: network-first with cache fallback
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  // 5. Everything else: network-only (no cache fallback)
+  //    This prevents any auth, font, or image request from being delayed by cache misses
 });
