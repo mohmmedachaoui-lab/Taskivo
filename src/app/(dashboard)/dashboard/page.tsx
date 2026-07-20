@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel } from "@/lib/xp-engine";
-import MissionControl from "@/components/dashboard/MissionControl";
 import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
 import { useFriends } from "@/hooks/useFriends";
@@ -13,11 +13,6 @@ import { getUserGuild, getGuildMembers } from "@/lib/social";
 import BentoCard from "@/components/ui/BentoCard";
 import PulsingStatCard from "@/components/ui/PulsingStatCard";
 import HeroSection from "@/components/dashboard/HeroSection";
-import WeeklyActivity from "@/components/dashboard/WeeklyActivity";
-import FeaturedPreview from "@/components/dashboard/FeaturedPreview";
-import GoalBentoCard from "@/components/dashboard/GoalBentoCard";
-import AIAgentCard from "@/components/dashboard/AIAgentCard";
-import StreakCard from "@/components/dashboard/StreakCard";
 import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import {
@@ -34,6 +29,13 @@ import {
   Target,
 } from "lucide-react";
 import { Guild, Duel, Task } from "@/types";
+
+const MissionControl = dynamic(() => import("@/components/dashboard/MissionControl"), { ssr: false, loading: () => <div className="h-full min-h-[280px] shimmer rounded-2xl bg-white/[0.03]" /> });
+const WeeklyActivity = dynamic(() => import("@/components/dashboard/WeeklyActivity"), { ssr: false, loading: () => <div className="h-40 shimmer rounded-2xl bg-white/[0.03]" /> });
+const AIAgentCard = dynamic(() => import("@/components/dashboard/AIAgentCard"), { ssr: false, loading: () => <div className="h-full min-h-[280px] shimmer rounded-2xl bg-white/[0.03]" /> });
+const GoalBentoCard = dynamic(() => import("@/components/dashboard/GoalBentoCard"), { ssr: false, loading: () => <div className="h-full shimmer rounded-2xl bg-white/[0.03]" /> });
+const StreakCard = dynamic(() => import("@/components/dashboard/StreakCard"), { ssr: false, loading: () => <div className="h-full shimmer rounded-2xl bg-white/[0.03]" /> });
+const FeaturedPreview = dynamic(() => import("@/components/dashboard/FeaturedPreview"), { ssr: false });
 
 export default function DashboardPage() {
   const { user } = useAuth();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
@@ -17,8 +17,6 @@ import InstallBanner from "@/components/layout/InstallBanner";
 import OfflineBanner from "@/components/ui/OfflineBanner";
 import { DeepModeProvider } from "@/components/ui/DeepMode";
 import { DarkModeV2Provider } from "@/components/ui/DarkModeV2";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useSettleDuels } from "@/hooks/useSettleDuels";
 import { initOfflineSync } from "@/lib/offlineSync";
 
@@ -31,8 +29,6 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
-  const reducedMotion = usePrefersReducedMotion();
   useSettleDuels();
 
   useEffect(() => {
@@ -95,48 +91,23 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen flex items-center justify-center starfield" style={{ background: "#050508" }}>
         <div className="flex flex-col items-center gap-5">
-          {/* Orbital ring */}
           <div className="relative h-16 w-16">
-            <motion.div
-              className="absolute inset-0 rounded-full border border-[#00d4ff]/20"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            <div className="absolute inset-0 rounded-full border border-[#00d4ff]/20 animate-[spin_3s_linear_infinite]" />
+            <div className="absolute inset-1 rounded-full border border-[#00d4ff]/10 animate-[spin_5s_linear_infinite_reverse]" />
+            <div
+              className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00d4ff] animate-[spin_1.2s_linear_infinite]"
             />
-            <motion.div
-              className="absolute inset-1 rounded-full border border-[#00d4ff]/10"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-            />
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{
-                border: "2px solid transparent",
-                borderTopColor: "#00d4ff",
-              }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-            />
-            {/* Center dot */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
-                className="h-2.5 w-2.5 rounded-full bg-[#00d4ff]"
-                animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.1, 0.8] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
+              <div className="h-2.5 w-2.5 rounded-full bg-[#00d4ff] animate-pulse" />
             </div>
           </div>
-          {/* Text */}
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] text-[#00d4ff]/60 font-[family-name:var(--font-mono)] uppercase tracking-[0.3em]">
               Taskivo
             </span>
-            <motion.span
-              className="text-[10px] text-gray-600 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
+            <span className="text-[10px] text-gray-600 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em] animate-pulse">
               Authenticating...
-            </motion.span>
+            </span>
           </div>
         </div>
       </div>
@@ -157,47 +128,32 @@ export default function DashboardLayout({
           <OfflineBanner />
           <main className="pl-0 lg:pl-60 pb-24 lg:pb-0 transition-all duration-300">
             <div className="max-w-[1600px] mx-auto">
-              <AnimatePresence mode="wait">
-                {showShell ? (
-                  <motion.div
-                    key={reducedMotion ? "content" : pathname}
-                    initial={reducedMotion ? false : { opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                  >
-                    {children}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="skeleton"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="p-4 lg:p-6"
-                  >
-                    <div className="bento-grid">
-                      {[...Array(6)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="bento-card bento-cyan rounded-2xl p-5"
-                          style={{
-                            gridColumn: i === 0 ? "span 2" : undefined,
-                            gridRow: i === 0 ? "span 2" : undefined,
-                          }}
-                        >
-                          <div className="space-y-3">
-                            <div className="h-3 w-24 rounded bg-white/[0.04] animate-pulse" />
-                            <div className="h-8 w-16 rounded bg-white/[0.03] animate-pulse" />
-                            <div className="h-2 w-full rounded bg-white/[0.03] animate-pulse" />
-                          </div>
+              {showShell ? (
+                <div className="animate-[fadeIn_0.15s_ease-out]">
+                  {children}
+                </div>
+              ) : (
+                <div className="p-4 lg:p-6 animate-[fadeIn_0.2s_ease-out]">
+                  <div className="bento-grid">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="bento-card bento-cyan rounded-2xl p-5"
+                        style={{
+                          gridColumn: i === 0 ? "span 2" : undefined,
+                          gridRow: i === 0 ? "span 2" : undefined,
+                        }}
+                      >
+                        <div className="space-y-3">
+                          <div className="h-3 w-24 rounded bg-white/[0.04] shimmer" />
+                          <div className="h-8 w-16 rounded bg-white/[0.03] shimmer" />
+                          <div className="h-2 w-full rounded bg-white/[0.03] shimmer" />
                         </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </main>
         </div>
