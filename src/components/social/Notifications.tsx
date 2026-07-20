@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
-import { Bell, Swords, UserPlus, Trophy, Check, Zap, AlertTriangle } from "lucide-react";
+import { Bell, Swords, UserPlus, Trophy, Check, Zap, AlertTriangle, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
 
 const ICON_MAP: Record<string, typeof Bell> = {
@@ -34,21 +34,30 @@ const COLOR_MAP: Record<string, string> = {
   guild_invite: "text-blue-400 bg-blue-500/10",
 };
 
+function formatRelativeTime(ts: number, now: number): string {
+  const diff = Math.max(0, now - ts);
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export default function Notifications() {
   const { user } = useAuth();
   const { notifications, unreadCount, markRead, markAllRead } = useRealtimeNotifications(user?.uid);
   const [showPanel, setShowPanel] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const now = useCurrentTime(60000);
 
-  const timeAgo = (ts: number) => {
-    const diff = now - ts;
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "now";
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}d`;
+  const handleClearAll = async () => {
+    setClearing(true);
+    await markAllRead();
+    setClearing(false);
   };
 
   return (
@@ -84,18 +93,30 @@ export default function Notifications() {
               </h3>
               {unreadCount > 0 && (
                 <button
-                  onClick={markAllRead}
-                  className="text-[10px] text-[#00d4ff] hover:text-[#00a8cc] font-[family-name:var(--font-mono)]"
+                  onClick={handleClearAll}
+                  disabled={clearing}
+                  className="flex items-center gap-1 text-[10px] text-[#00d4ff] hover:text-[#00a8cc] font-[family-name:var(--font-mono)] transition-colors"
                 >
-                  READ ALL
+                  <Trash2 className="h-2.5 w-2.5" />
+                  CLEAR ALL
                 </button>
               )}
             </div>
 
             {notifications.length === 0 ? (
-              <div className="py-8 text-center">
-                <Bell className="h-6 w-6 text-gray-700 mx-auto mb-2" />
-                <p className="text-xs text-gray-600 font-[family-name:var(--font-mono)]">NO ALERTS</p>
+              <div className="py-10 px-4">
+                <div className="relative mx-auto mb-3 w-12 h-12 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-[#00d4ff]/5 blur-xl" />
+                  <div className="relative h-10 w-10 rounded-xl bg-[#00d4ff]/[0.04] border border-[#00d4ff]/10 flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-[#00d4ff]/40" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 font-[family-name:var(--font-mono)] text-center">
+                  NO ALERTS
+                </p>
+                <p className="text-[10px] text-gray-600 text-center mt-1">
+                  You&apos;re all caught up
+                </p>
               </div>
             ) : (
               <div className="divide-y divide-[#00d4ff]/5">
@@ -118,7 +139,7 @@ export default function Notifications() {
                         <p className="text-[11px] font-medium text-gray-300">{n.title}</p>
                         <p className="text-[10px] text-gray-500 truncate">{n.message}</p>
                         <p className="text-[9px] text-gray-600 mt-0.5 font-[family-name:var(--font-mono)]">
-                          {timeAgo(n.createdAt)}
+                          {formatRelativeTime(n.createdAt, now)}
                         </p>
                       </div>
                       {!n.read && (
