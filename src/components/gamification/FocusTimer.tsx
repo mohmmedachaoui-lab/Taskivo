@@ -21,7 +21,11 @@ const MODES = {
 
 const XP_PER_SESSION = 50;
 
-export default memo(function FocusTimer() {
+interface FocusTimerProps {
+  compact?: boolean;
+}
+
+export default memo(function FocusTimer({ compact }: FocusTimerProps) {
   const { user } = useAuth();
   const profile = useAppStore(s => s.profile);
   const setProfile = useAppStore(s => s.setProfile);
@@ -143,9 +147,120 @@ export default memo(function FocusTimer() {
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const radius = 110;
+  const radius = compact ? 52 : 110;
+  const svgSize = compact ? 120 : 260;
+  const cx = svgSize / 2;
+  const cy = svgSize / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  if (compact) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-2">
+        {/* Mode switcher — compact pills */}
+        <div className="flex gap-1 p-0.5 rounded-lg bg-white/[0.02] border border-gray-800">
+          {(["work", "break"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all duration-300 ${
+                mode === m
+                  ? m === "work"
+                    ? "bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30"
+                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                  : "text-gray-600 hover:text-gray-400 border border-transparent"
+              }`}
+            >
+              {m === "work" ? <Zap className="h-2.5 w-2.5" /> : <Coffee className="h-2.5 w-2.5" />}
+              {MODES[m].label}
+            </button>
+          ))}
+        </div>
+
+        {/* Timer ring — compact */}
+        <div className="relative">
+          <svg width={svgSize} height={svgSize} className="-rotate-90">
+            <circle cx={cx} cy={cy} r={radius} fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-800/50" />
+            <motion.circle
+              cx={cx} cy={cy} r={radius} fill="none" stroke="url(#focusGradCompact)" strokeWidth="2.5" strokeLinecap="round"
+              strokeDasharray={circumference} animate={{ strokeDashoffset }} transition={{ duration: 0.5 }}
+            />
+            <defs>
+              <linearGradient id="focusGradCompact" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
+                <stop offset="100%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold tabular-nums text-white font-[family-name:var(--font-mono)] tracking-tighter">
+              {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+            </span>
+            <span className="text-[8px] text-gray-500 font-[family-name:var(--font-mono)] uppercase tracking-widest">
+              {MODES[mode].label}
+            </span>
+          </div>
+        </div>
+
+        {/* Controls — compact */}
+        <div className="flex items-center gap-3">
+          <button onClick={reset} className="p-2 rounded-full bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-white transition-colors">
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={toggle}
+            className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] font-semibold font-[family-name:var(--font-mono)] uppercase tracking-wider transition-all ${
+              isRunning
+                ? "bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30"
+                : "bg-[#00d4ff]/15 text-[#00d4ff] border border-[#00d4ff]/40 hover:bg-[#00d4ff]/20"
+            }`}
+          >
+            {isRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+            {isRunning ? "PAUSE" : "START"}
+          </button>
+        </div>
+
+        {/* Compact stats — single row */}
+        <div className="flex items-center gap-3 w-full">
+          {[
+            { icon: Flame, value: sessions, label: "SES", color: "#00d4ff" },
+            { icon: Trophy, value: `${sessions * 25}m`, label: "TIME", color: "#10b981" },
+            { icon: Zap, value: `+${totalXP}`, label: "XP", color: "#facc15" },
+          ].map((stat) => (
+            <div key={stat.label} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+              <stat.icon className="h-3 w-3 flex-shrink-0" style={{ color: stat.color }} />
+              <span className="text-[10px] font-bold text-white font-[family-name:var(--font-mono)]">{stat.value}</span>
+              <span className="text-[8px] text-gray-600 font-[family-name:var(--font-mono)] uppercase">{stat.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Session Complete Modal — same as full */}
+        {showComplete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", delay: 0.1 }}
+              className="glass neon-border rounded-xl max-w-sm w-full mx-4 text-center py-8 px-6 corner-accent"
+            >
+              <div className="text-5xl mb-4">🎯</div>
+              <h2 className="text-xl font-bold text-white font-[family-name:var(--font-mono)] mb-2">SESSION COMPLETE</h2>
+              <p className="text-xs text-gray-500 font-[family-name:var(--font-mono)]">+{XP_PER_SESSION} BASE XP</p>
+              <p className="text-xs text-[#00d4ff] font-[family-name:var(--font-mono)] mt-1">🔥 {streak} SESSION STREAK</p>
+              <div className="mt-6">
+                <Button onClick={() => { setShowComplete(false); switchMode("break"); }} variant="neon">START BREAK</Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -181,10 +296,10 @@ export default memo(function FocusTimer() {
 
         {/* Timer Ring */}
         <div className="relative mb-10">
-          <svg width={260} height={260} className="-rotate-90">
+          <svg width={svgSize} height={svgSize} className="-rotate-90">
             <circle
-              cx={130}
-              cy={130}
+              cx={cx}
+              cy={cy}
               r={radius}
               fill="none"
               stroke="currentColor"
@@ -192,8 +307,8 @@ export default memo(function FocusTimer() {
               className="text-gray-800/50"
             />
             <motion.circle
-              cx={130}
-              cy={130}
+              cx={cx}
+              cy={cy}
               r={radius}
               fill="none"
               stroke="url(#focusGradient)"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Target, Zap, AlarmClock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTasks } from "@/hooks/useTasks";
@@ -35,6 +36,7 @@ interface Alarm {
 }
 
 function AlarmsPanel({ uid }: { uid: string }) {
+  const router = useRouter();
   const [alarms, setAlarms] = useState<Alarm[]>([]);
 
   useEffect(() => {
@@ -69,7 +71,7 @@ function AlarmsPanel({ uid }: { uid: string }) {
 
   return (
     <div className="space-y-2">
-      {alarms.map((alarm) => (
+      {alarms.slice(0, 6).map((alarm) => (
         <div
           key={alarm.id}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
@@ -115,12 +117,21 @@ function AlarmsPanel({ uid }: { uid: string }) {
           </button>
         </div>
       ))}
+      {alarms.length > 6 && (
+        <button
+          onClick={() => router.push("/alarm")}
+          className="w-full text-center py-2 text-[10px] text-gray-500 hover:text-[#f97316] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors"
+        >
+          +{alarms.length - 6} more →
+        </button>
+      )}
     </div>
   );
 }
 
 export default function MissionControl() {
   const { user } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("missions");
   const { tasks, loading: tasksLoading } = useTasks(user?.uid);
 
@@ -206,13 +217,23 @@ export default function MissionControl() {
                   ))}
                 </div>
               ) : activeTasks.length > 0 ? (
-                activeTasks.slice(0, 8).map((task) => (
-                  <DashTaskItem
-                    key={task.id}
-                    task={task}
-                    onSelect={() => {}}
-                  />
-                ))
+                <>
+                  {activeTasks.slice(0, 8).map((task) => (
+                    <DashTaskItem
+                      key={task.id}
+                      task={task}
+                      onSelect={() => router.push("/tasks")}
+                    />
+                  ))}
+                  {activeTasks.length > 8 && (
+                    <button
+                      onClick={() => router.push("/tasks")}
+                      className="w-full text-center py-2 text-[10px] text-gray-500 hover:text-[#facc15] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors"
+                    >
+                      +{activeTasks.length - 8} more →
+                    </button>
+                  )}
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <Target className="h-8 w-8 text-gray-700 mb-2" />
@@ -230,7 +251,7 @@ export default function MissionControl() {
 
         {/* Focus — always mounted, hidden via CSS to preserve timer state */}
         <div style={{ display: activeTab === "focus" ? "block" : "none" }}>
-          <FocusTimer />
+          <FocusTimer compact />
         </div>
 
         {/* Alarm — conditional render to release onSnapshot listener */}
