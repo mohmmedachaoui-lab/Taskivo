@@ -101,10 +101,30 @@ export function useTasks(uid: string | undefined) {
       const task = tasks.find((t) => t.id === id);
       if (!task) return;
       const newCompleted = !task.completed;
-      await updateDoc(doc(db, "tasks", id), {
-        completed: newCompleted,
-        completedAt: newCompleted ? Date.now() : null,
-      });
+      const now = Date.now();
+
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? { ...t, completed: newCompleted, completedAt: newCompleted ? now : null }
+            : t
+        )
+      );
+
+      try {
+        await updateDoc(doc(db, "tasks", id), {
+          completed: newCompleted,
+          completedAt: newCompleted ? now : null,
+        });
+      } catch {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === id
+              ? { ...t, completed: !newCompleted, completedAt: !newCompleted ? now : null }
+              : t
+          )
+        );
+      }
     },
     [uid, tasks]
   );
