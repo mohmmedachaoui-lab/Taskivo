@@ -77,19 +77,23 @@ export function useTasks(uid: string | undefined) {
       deadline: number | null
     ) => {
       if (!uid) return;
-      const db = getFirebaseDb();
-      const ref = doc(collection(db, "tasks"));
-      await setDoc(ref, {
-        uid,
-        title,
-        difficulty,
-        completed: false,
-        penalty: false,
-        deadline,
-        createdAt: Date.now(),
-        completedAt: null,
-        xpAwarded: xp,
-      });
+      try {
+        const db = getFirebaseDb();
+        const ref = doc(collection(db, "tasks"));
+        await setDoc(ref, {
+          uid,
+          title,
+          difficulty,
+          completed: false,
+          penalty: false,
+          deadline,
+          createdAt: Date.now(),
+          completedAt: null,
+          xpAwarded: xp,
+        });
+      } catch (err) {
+        console.error("Failed to add task:", err);
+      }
     },
     [uid]
   );
@@ -132,8 +136,12 @@ export function useTasks(uid: string | undefined) {
   const deleteTask = useCallback(
     async (id: string) => {
       if (!uid) return;
-      const db = getFirebaseDb();
-      await deleteDoc(doc(db, "tasks", id));
+      try {
+        const db = getFirebaseDb();
+        await deleteDoc(doc(db, "tasks", id));
+      } catch (err) {
+        console.error("Failed to delete task:", err);
+      }
     },
     [uid]
   );

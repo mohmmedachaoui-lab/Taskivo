@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ import BentoCard from "@/components/ui/BentoCard";
 import PulsingStatCard from "@/components/ui/PulsingStatCard";
 import HeroSection from "@/components/dashboard/HeroSection";
 import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
-import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import {
   DashDuelItem,
   DashGuildMember,
@@ -45,32 +44,31 @@ export default function DashboardPage() {
   const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: Task | Duel | Guild } | null>(null);
 
   const { friendUids } = useFriends(user?.uid);
-  const { activeDuels, pendingDuels, loading: duelsLoading } = useRealtimeDuels(user?.uid);
+  const { activeDuels, pendingDuels } = useRealtimeDuels(user?.uid);
   const { feed } = useRealtimeFeed(user?.uid, friendUids);
   const { tasks } = useTasks(user?.uid);
 
   const [guild, setGuild] = useState<Guild | null>(null);
   const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number }[]>([]);
 
-  const loadGuild = useCallback(async () => {
-    if (!user) return;
-    try {
-      const g = await getUserGuild(user.uid);
-      setGuild(g);
-      if (g && g.members.length > 0) {
-        const members = await getGuildMembers(g.members);
-        setGuildMembers(members.sort((a, b) => b.totalXP - a.totalXP).slice(0, 6));
-      }
-    } catch (err) {
-      console.error("Failed to load guild:", err);
-    }
-  }, [user]);
-
   useEffect(() => {
-    loadGuild();
-    const interval = setInterval(loadGuild, 30000);
-    return () => clearInterval(interval);
-  }, [loadGuild]);
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const g = await getUserGuild(user.uid);
+        if (cancelled) return;
+        setGuild(g);
+        if (g && g.members.length > 0) {
+          const members = await getGuildMembers(g.members);
+          if (!cancelled) setGuildMembers(members.sort((a, b) => b.totalXP - a.totalXP).slice(0, 6));
+        }
+      } catch (err) {
+        console.error("Failed to load guild:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const tasksDone = stats?.tasksCompleted ?? 0;
@@ -78,12 +76,6 @@ export default function DashboardPage() {
 
   const allDuels = [...activeDuels, ...pendingDuels];
   const now = useCurrentTime(60000);
-
-  const dashLoading = duelsLoading;
-
-  if (dashLoading) {
-    return <DashboardSkeleton />;
-  }
 
   return (
     <div className="-mx-4 lg:-mx-6 -mt-4 lg:-mt-6 p-4 lg:p-6">

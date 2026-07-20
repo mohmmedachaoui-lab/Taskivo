@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { useAppStore } from "@/store";
 import { UserProfile, UserStats } from "@/types";
@@ -56,7 +56,11 @@ export default function DashboardLayout({
     const boot = async () => {
       try {
         const db = getFirebaseDb();
-        const profileSnap = await getDoc(doc(db, "users", user.uid));
+
+        const [profileSnap, statsSnap] = await Promise.all([
+          getDoc(doc(db, "users", user.uid)),
+          getDoc(doc(db, "stats", user.uid)),
+        ]);
 
         if (profileSnap.exists()) {
           const data = profileSnap.data();
@@ -70,12 +74,33 @@ export default function DashboardLayout({
           return;
         }
 
-        setOnboardingChecked(true);
-
-        const statsSnap = await getDoc(doc(db, "stats", user.uid));
         if (statsSnap.exists()) {
           setStats(statsSnap.data() as UserStats);
+        } else {
+          const defaults: UserStats = {
+            uid: user.uid,
+            tasksCompleted: 0,
+            tasksFailed: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            lastActiveDate: null,
+            streakPaused: false,
+            streakFreezesUsed: 0,
+            totalXP: 0,
+            level: 1,
+            guildId: null,
+            achievements: [],
+            focusHours: 0,
+            xpLost: 0,
+            duelsWon: 0,
+            focusSessions: 0,
+            earlyBirdTasks: 0,
+          };
+          await setDoc(doc(db, "stats", user.uid), defaults);
+          setStats(defaults);
         }
+
+        setOnboardingChecked(true);
       } catch (err) {
         console.error("Boot failed:", err);
         setProfile({
@@ -91,6 +116,25 @@ export default function DashboardLayout({
           rank: "Rookie",
           createdAt: Date.now(),
           onboardingComplete: true,
+        });
+        setStats({
+          uid: user.uid,
+          tasksCompleted: 0,
+          tasksFailed: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          lastActiveDate: null,
+          streakPaused: false,
+          streakFreezesUsed: 0,
+          totalXP: 0,
+          level: 1,
+          guildId: null,
+          achievements: [],
+          focusHours: 0,
+          xpLost: 0,
+          duelsWon: 0,
+          focusSessions: 0,
+          earlyBirdTasks: 0,
         });
         setOnboardingChecked(true);
       }

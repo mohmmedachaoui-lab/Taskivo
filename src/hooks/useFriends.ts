@@ -33,11 +33,17 @@ export function useFriends(uid: string | undefined) {
     const unsub1 = onSnapshot(q1, (snap) => {
       friends1 = snap.docs.map((d) => d.data().uid2);
       merge();
+    }, (err) => {
+      console.error("Friends (uid1) error:", err);
+      setLoading(false);
     });
 
     const unsub2 = onSnapshot(q2, (snap) => {
       friends2 = snap.docs.map((d) => d.data().uid1);
       merge();
+    }, (err) => {
+      console.error("Friends (uid2) error:", err);
+      setLoading(false);
     });
 
     return () => {

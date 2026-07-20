@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { Duel } from "@/types";
 
@@ -33,26 +33,8 @@ export function useRealtimeDuels(uid: string | undefined) {
       where("opponentId", "==", uid),
     );
 
-    const q3 = query(
-      collection(db, "duels"),
-      where("challengerId", "==", uid),
-      where("status", "==", "completed"),
-      orderBy("createdAt", "desc"),
-      limit(20),
-    );
-
-    const q4 = query(
-      collection(db, "duels"),
-      where("opponentId", "==", uid),
-      where("status", "==", "completed"),
-      orderBy("createdAt", "desc"),
-      limit(20),
-    );
-
     let challengerDuels: Duel[] = [];
     let opponentDuels: Duel[] = [];
-    let challengerCompleted: Duel[] = [];
-    let opponentCompleted: Duel[] = [];
 
     const mergeAndUpdate = () => {
       const all = [...challengerDuels, ...opponentDuels];
@@ -60,13 +42,12 @@ export function useRealtimeDuels(uid: string | undefined) {
       const now = Date.now();
       setActiveDuels(unique.filter((d) => d.status === "active" && d.endTime > now));
       setPendingDuels(unique.filter((d) => d.status === "pending"));
+      setCompletedDuels(
+        unique
+          .filter((d) => d.status === "completed")
+          .sort((a, b) => b.createdAt - a.createdAt)
+      );
       setLoading(false);
-    };
-
-    const mergeCompleted = () => {
-      const all = [...challengerCompleted, ...opponentCompleted];
-      const unique = Array.from(new Map(all.map((d) => [d.id, d])).values());
-      setCompletedDuels(unique.sort((a, b) => b.createdAt - a.createdAt));
     };
 
     const unsub1 = onSnapshot(q1, (snap) => {
@@ -85,25 +66,9 @@ export function useRealtimeDuels(uid: string | undefined) {
       setLoading(false);
     });
 
-    const unsub3 = onSnapshot(q3, (snap) => {
-      challengerCompleted = snap.docs.map((d) => d.data() as Duel);
-      mergeCompleted();
-    }, (err) => {
-      console.error("Realtime duels (completed challenger) error:", err);
-    });
-
-    const unsub4 = onSnapshot(q4, (snap) => {
-      opponentCompleted = snap.docs.map((d) => d.data() as Duel);
-      mergeCompleted();
-    }, (err) => {
-      console.error("Realtime duels (completed opponent) error:", err);
-    });
-
     return () => {
       unsub1();
       unsub2();
-      unsub3();
-      unsub4();
     };
   }, [uid]);
 
