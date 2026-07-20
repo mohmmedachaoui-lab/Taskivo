@@ -5,21 +5,19 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import {
   Home,
-  CheckSquare,
-  AlarmClock,
   Swords,
-  Timer,
   BarChart3,
   Settings,
+  Sparkles,
+  Gamepad2,
 } from "lucide-react";
 
 const items = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/tasks", label: "Missions", icon: CheckSquare },
-  { href: "/alarm", label: "Alarm", icon: AlarmClock },
   { href: "/duels", label: "Duels", icon: Swords },
-  { href: "/focus", label: "Focus", icon: Timer },
   { href: "/stats", label: "Stats", icon: BarChart3 },
+  { href: "/friends", label: "Social", icon: Sparkles },
+  { href: "/guilds", label: "Guilds", icon: Gamepad2 },
   { href: "/settings", label: "Sys", icon: Settings },
 ];
 

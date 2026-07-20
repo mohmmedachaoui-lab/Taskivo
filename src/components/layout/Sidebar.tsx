@@ -13,13 +13,9 @@ import { clsx } from "clsx";
 import { useState, memo } from "react";
 import {
   LayoutDashboard,
-  CheckSquare,
-  AlarmClock,
   Swords,
-  Timer,
   BarChart3,
   Settings,
-  Trophy,
   Sparkles,
   LogOut,
   Zap,
@@ -30,12 +26,8 @@ import {
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, accent: "#00d4ff" },
-  { href: "/tasks", label: "Missions", icon: CheckSquare, accent: "#facc15" },
-  { href: "/alarm", label: "Alarm", icon: AlarmClock, accent: "#f97316" },
   { href: "/duels", label: "Duels", icon: Swords, accent: "#ef4444" },
-  { href: "/focus", label: "Focus", icon: Timer, accent: "#3b82f6" },
   { href: "/stats", label: "Stats", icon: BarChart3, accent: "#00d4ff" },
-  { href: "/achievements", label: "Badges", icon: Trophy, accent: "#facc15" },
   { href: "/friends", label: "Social", icon: Sparkles, accent: "#a855f7" },
   { href: "/guilds", label: "Guilds", icon: Gamepad2, accent: "#a855f7" },
   { href: "/settings", label: "System", icon: Settings, accent: "#6b7280" },
