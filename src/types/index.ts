@@ -22,6 +22,9 @@ export interface UserStats {
   tasksFailed: number;
   currentStreak: number;
   longestStreak: number;
+  lastActiveDate: string | null;
+  streakPaused: boolean;
+  streakFreezesUsed: number;
   totalXP: number;
   level: number;
   guildId: string | null;

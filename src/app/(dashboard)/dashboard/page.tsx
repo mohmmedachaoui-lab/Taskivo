@@ -17,6 +17,7 @@ import WeeklyActivity from "@/components/dashboard/WeeklyActivity";
 import FeaturedPreview from "@/components/dashboard/FeaturedPreview";
 import GoalBentoCard from "@/components/dashboard/GoalBentoCard";
 import AIAgentCard from "@/components/dashboard/AIAgentCard";
+import StreakCard from "@/components/dashboard/StreakCard";
 import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import {
@@ -28,7 +29,6 @@ import {
 import { AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
-  Flame,
   Zap,
   Swords,
   Trophy,
@@ -73,7 +73,6 @@ export default function DashboardPage() {
 
   const level = profile ? calculateLevel(profile.totalXP) : 1;
   const tasksDone = stats?.tasksCompleted ?? 0;
-  const dayStreak = stats?.currentStreak ?? 0;
   const totalXP = profile?.totalXP ?? 0;
 
   const allDuels = [...activeDuels, ...pendingDuels];
@@ -110,7 +109,7 @@ export default function DashboardPage() {
         </BentoCard>
 
         <BentoCard variant="cyan" delay={0.15}>
-          <PulsingStatCard label="Day Streak" value={dayStreak} icon={Flame} color="#f97316" suffix="d" />
+          <StreakCard />
         </BentoCard>
 
         <BentoCard variant="cyan" delay={0.2}>

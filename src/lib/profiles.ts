@@ -13,6 +13,7 @@ import {
   runTransaction,
 } from "firebase/firestore";
 import { calculateLevel } from "@/lib/xp-engine";
+import { calculateStreakUpdate, getLocalDateString, shouldResetFreezes } from "@/lib/streak";
 
 const db = () => getFirebaseDb();
 
@@ -186,9 +187,10 @@ export async function completeTaskAtomically(
     const statsRef = doc(dbInstance, "stats", uid);
     const ppRef = doc(dbInstance, "publicProfiles", uid);
 
-    const [taskSnap, userSnap, ppSnap] = await Promise.all([
+    const [taskSnap, userSnap, statsSnap, ppSnap] = await Promise.all([
       transaction.get(taskRef),
       transaction.get(userRef),
+      transaction.get(statsRef),
       transaction.get(ppRef),
     ]);
 
@@ -199,10 +201,33 @@ export async function completeTaskAtomically(
     const newLevel = calculateLevel(newTotalXP);
     const xpChangeCapped = newTotalXP - currentXP;
 
+    const statsData = statsSnap.exists() ? statsSnap.data() : {};
+    const today = getLocalDateString();
+    const streakResult = calculateStreakUpdate(
+      statsData.currentStreak ?? 0,
+      statsData.longestStreak ?? 0,
+      statsData.lastActiveDate ?? null,
+      statsData.streakPaused ?? false,
+      today
+    );
+    const resetsFreezes = shouldResetFreezes(
+      statsData.streakFreezesUsed ?? 0,
+      statsData.lastActiveDate ?? null,
+      today
+    );
+
     transaction.update(taskRef, { completed: true, completedAt: Date.now() });
     transaction.update(userRef, { totalXP: increment(xpChangeCapped) });
+
     const { totalXP: _ignored, ...restStats } = extraStats;
-    transaction.update(statsRef, { totalXP: increment(xpChangeCapped), ...restStats });
+    transaction.update(statsRef, {
+      totalXP: increment(xpChangeCapped),
+      currentStreak: streakResult.currentStreak,
+      longestStreak: streakResult.longestStreak,
+      lastActiveDate: streakResult.lastActiveDate,
+      ...(resetsFreezes ? { streakFreezesUsed: 0 } : {}),
+      ...restStats,
+    });
 
     if (ppSnap.exists()) {
       transaction.update(ppRef, {
@@ -212,5 +237,49 @@ export async function completeTaskAtomically(
     }
 
     return { newTotalXP, newLevel };
+  });
+}
+
+export async function toggleStreakPause(uid: string): Promise<boolean> {
+  const dbInstance = getFirebaseDb();
+  const statsRef = doc(dbInstance, "stats", uid);
+  const snap = await getDoc(statsRef);
+  if (!snap.exists()) return false;
+  const paused = snap.data().streakPaused ?? false;
+  await updateDoc(statsRef, { streakPaused: !paused });
+  return !paused;
+}
+
+export async function applyStreakFreeze(uid: string): Promise<boolean> {
+  const dbInstance = getFirebaseDb();
+  return runTransaction(dbInstance, async (transaction) => {
+    const statsRef = doc(dbInstance, "stats", uid);
+    const snap = await transaction.get(statsRef);
+    if (!snap.exists()) return false;
+
+    const data = snap.data();
+    const freezesUsed = data.streakFreezesUsed ?? 0;
+    const today = getLocalDateString();
+    const resetsFreezes = shouldResetFreezes(freezesUsed, data.lastActiveDate ?? null, today);
+    const effectiveUsed = resetsFreezes ? 0 : freezesUsed;
+
+    if (effectiveUsed >= 1) return false;
+
+    const streakResult = calculateStreakUpdate(
+      data.currentStreak ?? 0,
+      data.longestStreak ?? 0,
+      data.lastActiveDate ?? null,
+      true,
+      today
+    );
+
+    transaction.update(statsRef, {
+      streakFreezesUsed: effectiveUsed + 1,
+      currentStreak: streakResult.currentStreak,
+      longestStreak: streakResult.longestStreak,
+      lastActiveDate: streakResult.lastActiveDate,
+    });
+
+    return true;
   });
 }
