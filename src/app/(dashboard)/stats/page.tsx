@@ -48,7 +48,7 @@ function StatsSkeleton() {
             <Skeleton className="h-3 w-32 mb-4" />
             <div className="flex items-end gap-1.5 h-20">
               {Array.from({ length: 7 }).map((_, j) => (
-                <div key={j} className="flex-1 shimmer rounded-t bg-white/[0.03] border border-white/[0.04] border-b-0" style={{ height: `${25 + Math.random() * 45}%` }} />
+                <div key={j} className="flex-1 shimmer rounded-t bg-white/[0.03] border border-white/[0.04] border-b-0" style={{ height: `${25 + ((j * 17 + 13) % 45)}%` }} />
               ))}
             </div>
             <div className="flex justify-between mt-2">
