@@ -48,8 +48,14 @@ export default memo(function ChatDrawer() {
   const activeConv = conversations.find((c) => c.id === activeConversationId);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!activeConversationId) return;
+    const el = messagesEndRef.current;
+    if (!el) return;
+    const raf = requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [messages, activeConversationId]);
 
   useEffect(() => {
     if (activeConversationId && user?.uid) {
@@ -59,7 +65,10 @@ export default memo(function ChatDrawer() {
 
   useEffect(() => {
     if (showDrawer && activeConversationId) {
-      inputRef.current?.focus();
+      const raf = requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+      return () => cancelAnimationFrame(raf);
     }
   }, [showDrawer, activeConversationId]);
 
@@ -300,6 +309,7 @@ export default memo(function ChatDrawer() {
                       <input
                         ref={inputRef}
                         type="text"
+                        autoFocus
                         value={input}
                         onChange={handleInputChange}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
