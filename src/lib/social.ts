@@ -106,18 +106,25 @@ export async function respondFriendRequest(
   if (!reqSnap.exists()) return;
   const req = reqSnap.data() as FriendRequest;
 
-  await updateDoc(doc(db(), "friendRequests", requestId), {
-    status: accept ? "accepted" : "declined",
-  });
-
   if (accept) {
-    const friendshipRef = doc(collection(db(), "friendships"));
-    await setDoc(friendshipRef, {
-      id: friendshipRef.id,
-      requestId: requestId,
-      uid1: req.fromUid,
-      uid2: req.toUid,
-      createdAt: Date.now(),
+    await runTransaction(db(), async (transaction) => {
+      const freshReqSnap = await transaction.get(doc(db(), "friendRequests", requestId));
+      if (!freshReqSnap.exists()) return;
+      const freshReq = freshReqSnap.data() as FriendRequest;
+      if (freshReq.status !== "pending") return;
+
+      transaction.update(doc(db(), "friendRequests", requestId), {
+        status: "accepted",
+      });
+
+      const friendshipRef = doc(collection(db(), "friendships"));
+      transaction.set(friendshipRef, {
+        id: friendshipRef.id,
+        requestId,
+        uid1: freshReq.fromUid,
+        uid2: freshReq.toUid,
+        createdAt: Date.now(),
+      });
     });
 
     await createNotification(req.fromUid, {
@@ -125,6 +132,10 @@ export async function respondFriendRequest(
       title: "Friend Request Accepted",
       message: `Your friend request was accepted`,
       data: { friendUid: req.toUid },
+    });
+  } else {
+    await updateDoc(doc(db(), "friendRequests", requestId), {
+      status: "declined",
     });
   }
 }
@@ -295,24 +306,29 @@ export async function updateActiveDuels(uid: string, xpGain: number): Promise<vo
 }
 
 export async function resolveDuel(duelId: string): Promise<void> {
-  const snap = await getDoc(doc(db(), "duels", duelId));
-  if (!snap.exists()) return;
-  const duel = snap.data() as Duel;
+  try {
+    await runTransaction(db(), async (transaction) => {
+      const duelRef = doc(db(), "duels", duelId);
+      const snap = await transaction.get(duelRef);
+      if (!snap.exists()) return;
+      const duel = snap.data() as Duel;
+      if (duel.status === "completed") return;
 
-  if (duel.status === "completed") return;
+      const winnerId =
+        duel.challengerXP > duel.opponentXP
+          ? duel.challengerId
+          : duel.opponentXP > duel.challengerXP
+          ? duel.opponentId
+          : null;
 
-  const winnerId =
-    duel.challengerXP > duel.opponentXP
-      ? duel.challengerId
-      : duel.opponentXP > duel.challengerXP
-      ? duel.opponentId
-      : null;
-
-  // Step 1: Mark duel complete (either participant can write this)
-  await updateDoc(doc(db(), "duels", duelId), {
-    status: "completed",
-    winnerId,
-  });
+      transaction.update(duelRef, {
+        status: "completed",
+        winnerId,
+      });
+    });
+  } catch {
+    // Transaction may fail if already resolved
+  }
 }
 
 export async function settleDuelSide(duelId: string, uid: string): Promise<void> {
@@ -478,27 +494,33 @@ export async function joinGuild(
   guildId: string,
   callsign: string = "New Member"
 ): Promise<boolean> {
-  const snap = await getDoc(doc(db(), "guilds", guildId));
-  if (!snap.exists()) return false;
-  const guild = snap.data() as Guild;
-  if (guild.members.includes(uid)) return false;
+  try {
+    await runTransaction(db(), async (transaction) => {
+      const snap = await transaction.get(doc(db(), "guilds", guildId));
+      if (!snap.exists()) throw new Error("Guild not found");
+      const guild = snap.data() as Guild;
+      if (guild.members.includes(uid)) throw new Error("Already a member");
 
-  await updateDoc(doc(db(), "guilds", guildId), {
-    members: [...guild.members, uid],
-    memberCount: guild.memberCount + 1,
-  });
-  await updateDoc(doc(db(), "stats", uid), { guildId });
+      transaction.update(doc(db(), "guilds", guildId), {
+        members: [...guild.members, uid],
+        memberCount: guild.memberCount + 1,
+      });
+      transaction.update(doc(db(), "stats", uid), { guildId });
+    });
 
-  const newsRef = doc(collection(db(), "guildNews"));
-  await setDoc(newsRef, {
-    id: newsRef.id,
-    guildId,
-    message: `${callsign} joined the guild`,
-    type: "join",
-    createdAt: Date.now(),
-  });
+    const newsRef = doc(collection(db(), "guildNews"));
+    await setDoc(newsRef, {
+      id: newsRef.id,
+      guildId,
+      message: `${callsign} joined the guild`,
+      type: "join",
+      createdAt: Date.now(),
+    });
 
-  return true;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function leaveGuild(uid: string, guildId: string, callsign: string = "Member"): Promise<void> {

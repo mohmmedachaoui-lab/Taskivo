@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ServiceWorkerRegister } from "@/components/layout/ServiceWorkerRegister";
 import { ToastProvider } from "@/components/ui/Toast";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -95,12 +96,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={`${inter.variable} ${jetbrains.variable} font-sans`}>
-        <ServiceWorkerRegister />
-        <ThemeProvider>
-          <ToastProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </ToastProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ServiceWorkerRegister />
+          <ThemeProvider>
+            <ToastProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

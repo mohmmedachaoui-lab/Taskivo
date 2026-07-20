@@ -3,9 +3,9 @@ import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 
 const XP_MIN_WIN = 50;
-const XP_MAX_WIN = 300;
+const XP_MAX_WIN = 600;
 const XP_MIN_PENALTY = 75;
-const XP_MAX_PENALTY = 500;
+const XP_MAX_PENALTY = 800;
 
 const WIN_RATE = 0.08;
 const PENALTY_RATE = 0.15;
@@ -50,7 +50,7 @@ export function calculateDuelStake(
   stakeMultiplier: number = 0.05
 ): number {
   const stake = Math.round(currentXP * stakeMultiplier);
-  return Math.max(50, Math.min(500, stake));
+  return Math.max(50, Math.min(1000, stake));
 }
 
 function getBaseXP(difficulty: Task["difficulty"]): number {

@@ -60,6 +60,7 @@ export default function AlarmPage() {
   const [newTime, setNewTime] = useState("09:00");
   const [newLabel, setNewLabel] = useState("");
   const [newDifficulty, setNewDifficulty] = useState<Difficulty>("medium");
+  const [newDays, setNewDays] = useState<string[]>(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [activeAlarm, setActiveAlarm] = useState<Alarm | null>(null);
   const [showChallenge, setShowChallenge] = useState(false);
   const oscRef = useRef<OscillatorNode | null>(null);
@@ -135,10 +136,11 @@ export default function AlarmPage() {
         time: newTime,
         label: newLabel,
         active: true,
-        days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        days: newDays,
         difficulty: newDifficulty,
       });
       setNewLabel("");
+      setNewDays(["Mon", "Tue", "Wed", "Thu", "Fri"]);
       setShowAdd(false);
     } catch { showToast("Failed to add alarm", "error"); }
   };
@@ -198,7 +200,31 @@ export default function AlarmPage() {
                     <Settings2 className="h-3.5 w-3.5 inline mr-1" />
                     Math Difficulty
                   </label>
-                  <div className="flex gap-2">
+                <div>
+                  <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Repeat Days</label>
+                  <div className="flex gap-1.5">
+                    {DAYS.map((day) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() =>
+                          setNewDays((prev) =>
+                            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+                          )
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          newDays.includes(day)
+                            ? "bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/30"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
                     {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
                       <button
                         key={d}

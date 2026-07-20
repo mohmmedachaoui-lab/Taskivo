@@ -14,7 +14,7 @@ import { incrementPublicXP, setProfileStatus } from "@/lib/profiles";
 
 type Mode = "work" | "break";
 
-const MODES = {
+const DEFAULT_MODES = {
   work: { duration: 25 * 60, label: "DEEP WORK", color: "from-[#00d4ff] to-blue-600" },
   break: { duration: 5 * 60, label: "BREAK", color: "from-emerald-500 to-green-600" },
 };
@@ -23,14 +23,22 @@ const XP_PER_SESSION = 50;
 
 interface FocusTimerProps {
   compact?: boolean;
+  workMinutes?: number;
+  breakMinutes?: number;
 }
 
-export default memo(function FocusTimer({ compact }: FocusTimerProps) {
+export default memo(function FocusTimer({ compact, workMinutes, breakMinutes }: FocusTimerProps) {
   const { user } = useAuth();
   const uid = useId();
   const profile = useAppStore(s => s.profile);
   const setProfile = useAppStore(s => s.setProfile);
   const [mode, setMode] = useState<Mode>("work");
+
+  const MODES = {
+    work: { duration: (workMinutes ?? 25) * 60, label: "DEEP WORK", color: DEFAULT_MODES.work.color },
+    break: { duration: (breakMinutes ?? 5) * 60, label: "BREAK", color: DEFAULT_MODES.break.color },
+  };
+
   const [timeLeft, setTimeLeft] = useState(MODES.work.duration);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState(0);
@@ -56,15 +64,17 @@ export default memo(function FocusTimer({ compact }: FocusTimerProps) {
   const reset = useCallback(() => {
     setIsRunning(false);
     deadlineRef.current = null;
-    setTimeLeft(MODES[mode].duration);
-  }, [mode]);
+    const dur = (mode === "work" ? (workMinutes ?? 25) : (breakMinutes ?? 5)) * 60;
+    setTimeLeft(dur);
+  }, [mode, workMinutes, breakMinutes]);
 
   const switchMode = useCallback((newMode: Mode) => {
     setIsRunning(false);
     deadlineRef.current = null;
     setMode(newMode);
-    setTimeLeft(MODES[newMode].duration);
-  }, []);
+    const dur = (newMode === "work" ? (workMinutes ?? 25) : (breakMinutes ?? 5)) * 60;
+    setTimeLeft(dur);
+  }, [workMinutes, breakMinutes]);
 
   const saveSessionXP = useCallback(async () => {
     if (!user) return;
