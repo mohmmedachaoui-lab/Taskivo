@@ -78,6 +78,20 @@ export default function DashboardLayout({
         }
       } catch (err) {
         console.error("Boot failed:", err);
+        setProfile({
+          uid: user.uid,
+          email: user.email ?? "",
+          displayName: user.displayName ?? "Agent",
+          callsign: "Agent",
+          photoURL: null,
+          friendCode: "",
+          friendSuffix: 0,
+          totalXP: 0,
+          level: 1,
+          rank: "Rookie",
+          createdAt: Date.now(),
+          onboardingComplete: true,
+        });
         setOnboardingChecked(true);
       }
     };

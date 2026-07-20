@@ -53,19 +53,25 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    getDoc(doc(getFirebaseDb(), "users", user.uid)).then((snap) => {
-      if (snap.exists()) {
-        const saved = snap.data().notificationSettings;
-        if (saved) {
-          setNotifSettings((prev) => ({ ...prev, ...saved }));
+    getDoc(doc(getFirebaseDb(), "users", user.uid))
+      .then((snap) => {
+        if (snap.exists()) {
+          const saved = snap.data().notificationSettings;
+          if (saved) {
+            setNotifSettings((prev) => ({ ...prev, ...saved }));
+          }
         }
-      }
-    });
+      })
+      .catch(() => {});
   }, [user]);
 
   const handleSignOut = async () => {
-    await signOut(getFirebaseAuth());
-    router.push("/");
+    try {
+      await signOut(getFirebaseAuth());
+      router.push("/");
+    } catch {
+      showToast("Failed to sign out", "error");
+    }
   };
 
   const handleResetData = async () => {
@@ -96,9 +102,14 @@ export default function SettingsPage() {
     const newVal = !notifSettings[key];
     setNotifSettings((prev) => ({ ...prev, [key]: newVal }));
     if (user) {
-      await updateDoc(doc(getFirebaseDb(), "users", user.uid), {
-        [`notificationSettings.${key}`]: newVal,
-      });
+      try {
+        await updateDoc(doc(getFirebaseDb(), "users", user.uid), {
+          [`notificationSettings.${key}`]: newVal,
+        });
+      } catch {
+        setNotifSettings((prev) => ({ ...prev, [key]: !newVal }));
+        showToast("Failed to update notification settings", "error");
+      }
     }
   };
 

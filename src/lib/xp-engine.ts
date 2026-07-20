@@ -63,6 +63,8 @@ function getBaseXP(difficulty: Task["difficulty"]): number {
       return 250;
     case "extreme":
       return 375;
+    default:
+      return 100;
   }
 }
 

@@ -9,6 +9,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
+import { showToast } from "@/components/ui/Toast";
 import {
   searchUsers,
   sendFriendRequest,
@@ -127,18 +128,22 @@ export default function FriendsPage() {
 
   const handleSendRequest = async (targetUid: string) => {
     if (!user || !profile || !requireOnline()) return;
-    const result = await sendFriendRequest(user.uid, profile.callsign, profile.photoURL, targetUid);
-    setSearchResults((prev) =>
-      prev.map((r) =>
-        r.uid === targetUid ? { ...r, requestSent: result === "sent" } : r
-      )
-    );
+    try {
+      const result = await sendFriendRequest(user.uid, profile.callsign, profile.photoURL, targetUid);
+      setSearchResults((prev) =>
+        prev.map((r) =>
+          r.uid === targetUid ? { ...r, requestSent: result === "sent" } : r
+        )
+      );
+    } catch { showToast("Failed to send request", "error"); }
   };
 
   const handleRespond = async (requestId: string, accept: boolean) => {
     if (!requireOnline()) return;
-    await respondFriendRequest(requestId, accept);
-    loadFriends();
+    try {
+      await respondFriendRequest(requestId, accept);
+      loadFriends();
+    } catch { showToast("Failed to respond", "error"); }
   };
 
   const copyFriendCode = () => {

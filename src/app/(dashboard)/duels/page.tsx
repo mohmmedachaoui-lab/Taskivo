@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
+import { showToast } from "@/components/ui/Toast";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
 import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import {
@@ -73,10 +74,12 @@ export default function DuelsPage() {
 
   const handleChallenge = async (opponent: { uid: string; callsign: string }) => {
     if (!user || !profile || !requireOnline()) return;
-    await createDuel(user.uid, profile.callsign, opponent.uid, opponent.callsign, stakeXP);
-    setShowChallenge(false);
-    setSearchTerm("");
-    setSearchResults([]);
+    try {
+      await createDuel(user.uid, profile.callsign, opponent.uid, opponent.callsign, stakeXP);
+      setShowChallenge(false);
+      setSearchTerm("");
+      setSearchResults([]);
+    } catch { showToast("Failed to create duel", "error"); }
   };
 
   const getTimeLeft = (endTime: number) => {
@@ -272,7 +275,7 @@ export default function DuelsPage() {
                           <p className="text-xs text-orange-500">{oppXP} XP</p>
                         </div>
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-sm font-bold">
-                          {getOpponentName(duel)[0].toUpperCase()}
+                          {(getOpponentName(duel)[0] ?? "?").toUpperCase()}
                         </div>
                       </div>
                     </div>
@@ -302,7 +305,7 @@ export default function DuelsPage() {
                         </span>
                       )}
                       {duel.status === "pending" && user?.uid === duel.opponentId && (
-                        <Button size="sm" onClick={async () => { if (!requireOnline()) return; await acceptDuel(duel.id); }}>
+                        <Button size="sm" onClick={async () => { if (!requireOnline()) return; try { await acceptDuel(duel.id); } catch { showToast("Failed to accept duel", "error"); } }}>
                           Accept Duel
                         </Button>
                       )}

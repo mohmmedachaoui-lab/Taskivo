@@ -81,18 +81,18 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
           <Crown className="h-5 w-5 text-yellow-500" />
           Leaderboard
         </h2>
-        <div className="flex gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+        <div className="flex gap-1 p-1 rounded-xl bg-gray-800">
           <button
             onClick={() => setMode("global")}
             className={clsx(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
               mode === "global"
-                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-gray-700 text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-300"
             )}
           >
             Global
@@ -102,8 +102,8 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
             className={clsx(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
               mode === "friends"
-                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                ? "bg-gray-700 text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-300"
             )}
           >
             Friends
@@ -118,15 +118,15 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
           </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <Users className="h-10 w-10 text-gray-300 dark:text-gray-700 mb-3" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <Users className="h-10 w-10 text-gray-700 mb-3" />
+            <p className="text-sm text-gray-400">
               {mode === "friends"
                 ? "Add friends to see the leaderboard"
                 : "No data yet"}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="divide-y divide-gray-800">
             {entries.map((entry, i) => (
               <motion.div
                 key={entry.uid}
@@ -149,10 +149,10 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
                     "h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
                     entry.isUser
                       ? "bg-blue-500 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      : "bg-gray-700 text-gray-300"
                   )}
                 >
-                  {entry.callsign[0].toUpperCase()}
+                  {(entry.callsign[0] ?? "?").toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
@@ -160,7 +160,7 @@ export default function Leaderboard({ friendUids }: { friendUids?: string[] }) {
                       "font-medium truncate",
                       entry.isUser
                         ? "text-blue-500"
-                        : "text-gray-900 dark:text-white"
+                        : "text-white"
                     )}
                   >
                     {entry.callsign}

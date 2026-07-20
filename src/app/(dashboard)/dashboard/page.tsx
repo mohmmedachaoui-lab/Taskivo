@@ -9,6 +9,7 @@ import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
 import { useFriends } from "@/hooks/useFriends";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
+import { useTasks } from "@/hooks/useTasks";
 import { getUserGuild, getGuildMembers } from "@/lib/social";
 import BentoCard from "@/components/ui/BentoCard";
 import PulsingStatCard from "@/components/ui/PulsingStatCard";
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   const { friendUids } = useFriends(user?.uid);
   const { activeDuels, pendingDuels, loading: duelsLoading } = useRealtimeDuels(user?.uid);
   const { feed } = useRealtimeFeed(user?.uid, friendUids);
+  const { tasks } = useTasks(user?.uid);
 
   const [guild, setGuild] = useState<Guild | null>(null);
   const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number }[]>([]);
@@ -194,7 +196,7 @@ export default function DashboardPage() {
 
         {/* ===== WEEKLY ACTIVITY ===== */}
         <BentoCard variant="cyan" span={2} delay={0.4}>
-          <WeeklyActivity />
+          <WeeklyActivity tasks={tasks} />
         </BentoCard>
 
         {/* ===== LIVE FEED ===== */}

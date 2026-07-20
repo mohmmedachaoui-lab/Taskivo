@@ -49,8 +49,13 @@ export default memo(function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut(getFirebaseAuth());
-    router.push("/");
+    try {
+      await signOut(getFirebaseAuth());
+      router.push("/");
+    } catch {
+      // Sign out failed, still redirect
+      router.push("/");
+    }
   };
 
   return (
@@ -104,7 +109,7 @@ export default memo(function Sidebar() {
               </div>
             ) : (
               <div className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-[#a855f7] to-[#00d4ff] flex items-center justify-center ring-1 ring-[#00d4ff]/20">
-                <span className="text-white font-semibold text-xs">{profile.callsign[0].toUpperCase()}</span>
+                <span className="text-white font-semibold text-xs">{(profile.callsign[0] ?? "?").toUpperCase()}</span>
                 <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#10b981] border-2 border-[#050508]" />
               </div>
             )}

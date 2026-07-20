@@ -90,7 +90,7 @@ export default function ProfilePage() {
           <div className="relative">
             <Image
               src={user.photoURL}
-              alt={profile?.callsign ?? ""}
+              alt={profile?.callsign ?? "User profile photo"}
               width={80}
               height={80}
               className="h-20 w-20 rounded-2xl object-cover ring-2 ring-[#00d4ff]/20"

@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   title: string;
   message: string;
   confirmLabel?: string;
+  loadingLabel?: string;
   danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -21,6 +22,7 @@ export default function ConfirmModal({
   title,
   message,
   confirmLabel = "Confirm",
+  loadingLabel = "Processing...",
   danger = false,
   onConfirm,
   onCancel,
@@ -93,9 +95,9 @@ export default function ConfirmModal({
                 onClick={onConfirm}
                 className={`flex-1 ${danger ? "bg-[#ef4444] hover:bg-[#dc2626] text-white border-[#ef4444]/40" : ""}`}
                 disabled={loading}
-                aria-label={loading ? "Processing..." : confirmLabel}
+                aria-label={loading ? loadingLabel : confirmLabel}
               >
-                {loading ? "Removing..." : confirmLabel}
+                {loading ? loadingLabel : confirmLabel}
               </Button>
             </div>
           </motion.div>

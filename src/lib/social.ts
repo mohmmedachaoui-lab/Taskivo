@@ -212,6 +212,7 @@ export async function createDuel(
   stakeXP: number = 100,
   durationHours: number = 24
 ): Promise<string> {
+  if (challengerId === opponentId) throw new Error("Cannot duel yourself");
   const ref = doc(collection(db(), "duels"));
   await setDoc(ref, {
     id: ref.id,
@@ -242,6 +243,10 @@ export async function createDuel(
 }
 
 export async function acceptDuel(duelId: string): Promise<void> {
+  const snap = await getDoc(doc(db(), "duels", duelId));
+  if (!snap.exists()) throw new Error("Duel not found");
+  const duel = snap.data() as Duel;
+  if (duel.status !== "pending") throw new Error("Duel is not pending");
   await updateDoc(doc(db(), "duels", duelId), {
     status: "active",
     startTime: Date.now(),
@@ -543,7 +548,7 @@ export async function kickMember(
   });
 
   await createNotification(targetUid, {
-    type: "guild_invite",
+    type: "guild_kick",
     title: "Removed from Guild",
     message: `You have been removed from the guild`,
     data: { guildId },

@@ -10,6 +10,7 @@ interface ToastItem {
   id: string;
   message: string;
   variant: ToastVariant;
+  duration?: number;
 }
 
 interface ToastContextValue {
@@ -66,9 +67,9 @@ function ToastItemView({
   const dismissRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(item.id), 4000);
+    const timer = setTimeout(() => onDismiss(item.id), item.duration ?? 4000);
     return () => clearTimeout(timer);
-  }, [item.id, onDismiss]);
+  }, [item.id, onDismiss, item.duration]);
 
   return (
     <motion.div
@@ -115,10 +116,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const toast = useCallback(
     (message: string, variant: ToastVariant = "info", duration = 4000) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      setToasts((prev) => [...prev, { id, message, variant }]);
-      setTimeout(() => dismiss(id), duration);
+      setToasts((prev) => [...prev, { id, message, variant, duration }]);
     },
-    [dismiss]
+    []
   );
 
   useEffect(() => {

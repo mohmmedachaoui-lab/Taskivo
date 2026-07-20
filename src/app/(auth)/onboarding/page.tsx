@@ -149,6 +149,12 @@ export default function OnboardingPage() {
     }
   }, [user, callsign, focusPrefs, router]);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [user, loading, router]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#020817" }}>
@@ -157,10 +163,7 @@ export default function OnboardingPage() {
     );
   }
 
-  if (!user) {
-    router.push("/");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center cyber-grid px-4" style={{ background: "#020817" }}>

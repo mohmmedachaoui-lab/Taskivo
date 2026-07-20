@@ -85,7 +85,7 @@ export interface Achievement {
   description: string;
   icon: string;
   requirement: number;
-  type: "tasks_completed" | "streak" | "level" | "xp" | "duels_won" | "focus_sessions";
+  type: "tasks_completed" | "streak" | "level" | "xp" | "duels_won" | "focus_sessions" | "early_bird";
 }
 
 export interface Duel {
@@ -126,7 +126,7 @@ export interface Friendship {
 export interface Notification {
   id: string;
   uid: string;
-  type: "duel_request" | "duel_won" | "duel_lost" | "friend_request" | "friend_accepted" | "guild_invite" | "achievement_unlocked" | "xp_penalty" | "stake_won" | "stake_lost";
+  type: "duel_request" | "duel_won" | "duel_lost" | "friend_request" | "friend_accepted" | "guild_invite" | "guild_kick" | "achievement_unlocked" | "xp_penalty" | "stake_won" | "stake_lost";
   title: string;
   message: string;
   read: boolean;

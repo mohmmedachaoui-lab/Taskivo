@@ -29,6 +29,7 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      aria-label="Main navigation"
       style={{
         background: "rgba(2, 8, 23, 0.95)",
         backdropFilter: "blur(20px)",
@@ -46,6 +47,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={clsx(
                 "flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg text-[9px] font-medium transition-all duration-200 font-[family-name:var(--font-mono)]",
                 isActive

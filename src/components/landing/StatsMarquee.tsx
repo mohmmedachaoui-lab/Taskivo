@@ -25,7 +25,7 @@ export default function StatsMarquee() {
       <div className="marquee-track flex items-center gap-12 w-max">
         {items.map((stat, i) => (
           <div
-            key={i}
+            key={`${stat.label}-${i}`}
             className="flex items-center gap-3 px-5 py-3 rounded-xl shrink-0"
             style={{
               background: "rgba(255, 255, 255, 0.02)",

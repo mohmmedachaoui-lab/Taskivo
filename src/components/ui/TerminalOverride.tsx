@@ -16,6 +16,11 @@ export default memo(function TerminalOverride() {
   const [history, setHistory] = useState<string[]>([]);
   const [overloadActive, setOverloadActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.ctrlKey && e.shiftKey && e.key === "X") {
@@ -54,12 +59,16 @@ export default memo(function TerminalOverride() {
       setOverloadActive(true);
 
       await new Promise((r) => setTimeout(r, 1500));
+      if (!mountedRef.current) return;
       setHistory((prev) => [...prev, "BYPASSING SECURITY LAYER..."]);
       await new Promise((r) => setTimeout(r, 1000));
+      if (!mountedRef.current) return;
       setHistory((prev) => [...prev, "INJECTING NEURAL INTERFACE..."]);
       await new Promise((r) => setTimeout(r, 800));
+      if (!mountedRef.current) return;
       setHistory((prev) => [...prev, "ACCESS GRANTED."]);
       await new Promise((r) => setTimeout(r, 500));
+      if (!mountedRef.current) return;
 
       setOverloadActive(false);
 
@@ -93,6 +102,7 @@ export default memo(function TerminalOverride() {
       ]);
 
       setTimeout(() => {
+        if (!mountedRef.current) return;
         setIsOpen(false);
         setInput("");
       }, 3000);

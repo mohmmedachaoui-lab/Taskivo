@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import MathChallenge from "@/components/ui/MathChallenge";
 import { useAuth } from "@/hooks/useAuth";
+import { showToast } from "@/components/ui/Toast";
 import {
   collection,
   query,
@@ -113,27 +114,33 @@ export default function AlarmPage() {
 
   const toggleAlarm = async (id: string, currentActive: boolean) => {
     if (!user || !requireOnline()) return;
-    await updateDoc(doc(getFirebaseDb(), "alarms", id), { active: !currentActive });
+    try {
+      await updateDoc(doc(getFirebaseDb(), "alarms", id), { active: !currentActive });
+    } catch { showToast("Failed to toggle alarm", "error"); }
   };
 
   const deleteAlarm = async (id: string) => {
     if (!user || !requireOnline()) return;
-    await deleteDoc(doc(getFirebaseDb(), "alarms", id));
+    try {
+      await deleteDoc(doc(getFirebaseDb(), "alarms", id));
+    } catch { showToast("Failed to delete alarm", "error"); }
   };
 
   const addAlarm = async () => {
     if (!newLabel.trim() || !user || !requireOnline()) return;
-    const ref = doc(collection(getFirebaseDb(), "alarms"));
-    await setDoc(ref, {
-      uid: user.uid,
-      time: newTime,
-      label: newLabel,
-      active: true,
-      days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-      difficulty: newDifficulty,
-    });
-    setNewLabel("");
-    setShowAdd(false);
+    try {
+      const ref = doc(collection(getFirebaseDb(), "alarms"));
+      await setDoc(ref, {
+        uid: user.uid,
+        time: newTime,
+        label: newLabel,
+        active: true,
+        days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        difficulty: newDifficulty,
+      });
+      setNewLabel("");
+      setShowAdd(false);
+    } catch { showToast("Failed to add alarm", "error"); }
   };
 
   const dismissAlarm = () => {

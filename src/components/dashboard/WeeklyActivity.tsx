@@ -1,10 +1,30 @@
 "use client";
 
 import { BarChart3 } from "lucide-react";
+import { Task } from "@/types";
 
-export default function WeeklyActivity() {
+export default function WeeklyActivity({ tasks = [] }: { tasks?: Task[] }) {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const data = [0, 0, 0, 0, 0, 0, 0];
+
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const data = days.map((_, i) => {
+    const dayStart = new Date(weekStart);
+    dayStart.setDate(weekStart.getDate() + i);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayStart.getDate() + 1);
+    return tasks.filter(
+      (t) =>
+        t.completed &&
+        t.completedAt &&
+        t.completedAt >= dayStart.getTime() &&
+        t.completedAt < dayEnd.getTime()
+    ).length;
+  });
+
   const max = Math.max(...data, 1);
 
   return (

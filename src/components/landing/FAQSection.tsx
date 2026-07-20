@@ -39,7 +39,7 @@ export default function FAQSection() {
       <div className="max-w-3xl mx-auto">
         <ScrollReveal>
           <div className="text-center mb-16">
-            <p className="text-[10px] text-[#facc15] font-[frequency-name:var(--font-mono)] uppercase tracking-[0.4em] mb-3">
+            <p className="text-[10px] text-[#facc15] font-[family-name:var(--font-mono)] uppercase tracking-[0.4em] mb-3">
               Intel Brief
             </p>
             <h2 className="text-3xl lg:text-5xl font-bold font-[family-name:var(--font-mono)] mb-4">

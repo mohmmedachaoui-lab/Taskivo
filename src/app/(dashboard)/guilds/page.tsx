@@ -8,6 +8,7 @@ import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { useRealtimeGuilds } from "@/hooks/useRealtimeGuilds";
+import { showToast } from "@/components/ui/Toast";
 import {
   createGuild,
   joinGuild,
@@ -172,14 +173,18 @@ export default function GuildsPage() {
 
   const handleJoin = async (guildId: string) => {
     if (!user || !requireOnline()) return;
-    await joinGuild(user.uid, guildId, profile?.callsign ?? "New Member");
-    await loadData();
+    try {
+      await joinGuild(user.uid, guildId, profile?.callsign ?? "New Member");
+      await loadData();
+    } catch { showToast("Failed to join guild", "error"); }
   };
 
   const handleLeave = async () => {
     if (!user || !myGuild || !requireOnline()) return;
-    await leaveGuild(user.uid, myGuild.id, profile?.callsign ?? "Member");
-    await loadData();
+    try {
+      await leaveGuild(user.uid, myGuild.id, profile?.callsign ?? "Member");
+      await loadData();
+    } catch { showToast("Failed to leave guild", "error"); }
   };
 
   const handleKick = async (targetUid: string, targetCallsign: string) => {
@@ -189,9 +194,11 @@ export default function GuildsPage() {
 
   const confirmKick = async () => {
     if (!user || !myGuild || !kickTarget) return;
-    await kickMember(user.uid, myGuild.id, kickTarget.uid, kickTarget.callsign);
-    setKickTarget(null);
-    await loadData();
+    try {
+      await kickMember(user.uid, myGuild.id, kickTarget.uid, kickTarget.callsign);
+      setKickTarget(null);
+      await loadData();
+    } catch { showToast("Failed to kick member", "error"); }
   };
 
   const isOwner = user && myGuild && myGuild.ownerId === user.uid;
