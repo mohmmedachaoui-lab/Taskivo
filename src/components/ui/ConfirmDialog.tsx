@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Info, ShieldAlert } from "lucide-react";
 import Button from "./Button";
@@ -59,6 +60,25 @@ export default function ConfirmDialog({
   loadingLabel,
 }: ConfirmDialogProps) {
   const config = variantConfig[variant];
+  const titleId = useId();
+  const messageId = useId();
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      const raf = requestAnimationFrame(() => confirmRef.current?.focus());
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onCancel]);
 
   return (
     <AnimatePresence>
@@ -72,9 +92,14 @@ export default function ConfirmDialog({
             transition={{ duration: 0.15 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]"
             onClick={onCancel}
+            aria-hidden="true"
           />
           <motion.div
             key="confirm-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={messageId}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -90,7 +115,7 @@ export default function ConfirmDialog({
             style={{ touchAction: "pan-x" }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[80] glass neon-border rounded-2xl p-5"
           >
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center mb-3" aria-hidden="true">
               <div className="h-1 w-8 rounded-full bg-gray-600" />
             </div>
 
@@ -98,24 +123,38 @@ export default function ConfirmDialog({
               <div
                 className="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: config.glowColor }}
+                aria-hidden="true"
               >
                 {config.icon}
               </div>
-              <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]">
+              <h3
+                id={titleId}
+                className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]"
+              >
                 {title}
               </h3>
             </div>
 
-            <p className="text-xs text-gray-400 mb-5 leading-relaxed">{message}</p>
+            <p id={messageId} className="text-xs text-gray-400 mb-5 leading-relaxed">
+              {message}
+            </p>
 
             <div className="flex gap-2">
-              <Button variant="secondary" onClick={onCancel} className="flex-1" disabled={loading}>
+              <Button
+                variant="secondary"
+                onClick={onCancel}
+                className="flex-1"
+                disabled={loading}
+                aria-label={cancelLabel}
+              >
                 {cancelLabel}
               </Button>
               <Button
+                ref={confirmRef}
                 onClick={onConfirm}
                 className={`flex-1 ${config.btnClass}`}
                 disabled={loading}
+                aria-label={loading ? (loadingLabel ?? "Processing...") : confirmLabel}
               >
                 {loading ? (loadingLabel ?? "Processing...") : confirmLabel}
               </Button>

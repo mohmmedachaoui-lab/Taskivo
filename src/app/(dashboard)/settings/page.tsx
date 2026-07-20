@@ -206,6 +206,8 @@ export default function SettingsPage() {
               <span className="flex-1 text-sm font-medium text-white">{item.label}</span>
               <button
                 onClick={() => toggleNotif(item.key)}
+                aria-label={`${notifSettings[item.key] ? "Disable" : "Enable"} ${item.label} notifications`}
+                aria-pressed={notifSettings[item.key]}
                 className={`relative w-10 h-5 rounded-full transition-all duration-200 ${
                   notifSettings[item.key]
                     ? "bg-[#a855f7]/20 border border-[#a855f7]/30"
@@ -284,20 +286,33 @@ export default function SettingsPage() {
       {/* Reset Data — Step 2: Type-to-confirm */}
       {showReset && resetStep === 1 && (
         <>
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]" onClick={() => setShowReset(false)} />
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[80] glass neon-border border-[#ef4444]/30 rounded-2xl p-5">
-            <div className="flex justify-center mb-3">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]"
+            onClick={() => setShowReset(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-confirm-title"
+            aria-describedby="reset-confirm-desc"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[80] glass neon-border border-[#ef4444]/30 rounded-2xl p-5"
+          >
+            <div className="flex justify-center mb-3" aria-hidden="true">
               <div className="h-1 w-8 rounded-full bg-gray-600" />
             </div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-9 w-9 rounded-xl bg-[#ef4444]/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-[#ef4444]/10 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                 <AlertTriangle className="h-5 w-5 text-[#ef4444]" />
               </div>
-              <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]">
+              <h3
+                id="reset-confirm-title"
+                className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]"
+              >
                 Type &quot;DELETE&quot; to confirm
               </h3>
             </div>
-            <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+            <p id="reset-confirm-desc" className="text-xs text-gray-400 mb-4 leading-relaxed">
               This action is irreversible. All your data will be permanently removed.
             </p>
             <input
@@ -306,6 +321,7 @@ export default function SettingsPage() {
               onChange={(e) => setResetInput(e.target.value)}
               placeholder='Type "DELETE"'
               autoFocus
+              aria-label='Type DELETE to confirm data reset'
               className="w-full px-4 py-2.5 rounded-xl border border-[#ef4444]/20 bg-[#ef4444]/5 text-white placeholder-gray-500 text-sm font-[family-name:var(--font-mono)] focus:ring-2 focus:ring-[#ef4444]/40 focus:border-transparent mb-4"
             />
             <div className="flex gap-2">
@@ -313,12 +329,14 @@ export default function SettingsPage() {
                 onClick={() => setShowReset(false)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-gray-300 text-sm font-medium hover:bg-white/[0.08] transition-colors"
                 disabled={resetting}
+                aria-label="Cancel data reset"
               >
                 Cancel
               </button>
               <button
                 onClick={handleResetData}
                 disabled={resetInput !== "DELETE" || resetting}
+                aria-label="Delete all data permanently"
                 className="flex-1 px-4 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-sm font-medium border border-[#ef4444]/40 shadow-[0_0_20px_rgba(239,68,68,0.2)] disabled:opacity-40 disabled:pointer-events-none transition-all"
               >
                 {resetting ? "Deleting..." : "Delete Everything"}
