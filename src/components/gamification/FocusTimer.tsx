@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, useId, memo } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, RotateCcw, Coffee, Zap, Flame, Trophy } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -27,6 +27,7 @@ interface FocusTimerProps {
 
 export default memo(function FocusTimer({ compact }: FocusTimerProps) {
   const { user } = useAuth();
+  const uid = useId();
   const profile = useAppStore(s => s.profile);
   const setProfile = useAppStore(s => s.setProfile);
   const [mode, setMode] = useState<Mode>("work");
@@ -182,11 +183,11 @@ export default memo(function FocusTimer({ compact }: FocusTimerProps) {
           <svg width={svgSize} height={svgSize} className="-rotate-90">
             <circle cx={cx} cy={cy} r={radius} fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-800/50" />
             <motion.circle
-              cx={cx} cy={cy} r={radius} fill="none" stroke="url(#focusGradCompact)" strokeWidth="2.5" strokeLinecap="round"
+              cx={cx} cy={cy} r={radius} fill="none" stroke={`url(#fg-${uid})`} strokeWidth="2.5" strokeLinecap="round"
               strokeDasharray={circumference} animate={{ strokeDashoffset }} transition={{ duration: 0.5 }}
             />
             <defs>
-              <linearGradient id="focusGradCompact" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id={`fg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
                 <stop offset="100%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
               </linearGradient>
@@ -311,7 +312,7 @@ export default memo(function FocusTimer({ compact }: FocusTimerProps) {
               cy={cy}
               r={radius}
               fill="none"
-              stroke="url(#focusGradient)"
+              stroke={`url(#fg-${uid})`}
               strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -319,7 +320,7 @@ export default memo(function FocusTimer({ compact }: FocusTimerProps) {
               transition={{ duration: 0.5 }}
             />
             <defs>
-              <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id={`fg-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={mode === "work" ? "#00d4ff" : "#10b981"} />
                 <stop offset="100%" stopColor={mode === "work" ? "#3b82f6" : "#22c55e"} />
               </linearGradient>

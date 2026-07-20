@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Target, Zap, AlarmClock } from "lucide-react";
@@ -35,6 +35,54 @@ interface Alarm {
   difficulty: "easy" | "medium" | "hard";
 }
 
+function MissionsPanel({ uid }: { uid: string }) {
+  const router = useRouter();
+  const { tasks, loading } = useTasks(uid);
+  const activeTasks = tasks.filter((t) => !t.completed && !t.penalty);
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-14 rounded-xl bg-white/[0.02] animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (activeTasks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <Target className="h-8 w-8 text-gray-700 mb-2" />
+        <p className="text-xs text-gray-500">No active missions</p>
+        <p className="text-[10px] text-gray-600 mt-1">
+          Create one from the Missions page
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {activeTasks.slice(0, 8).map((task) => (
+        <DashTaskItem
+          key={task.id}
+          task={task}
+          onSelect={() => router.push("/tasks")}
+        />
+      ))}
+      {activeTasks.length > 8 && (
+        <button
+          onClick={() => router.push("/tasks")}
+          className="w-full text-center py-2 text-[10px] text-gray-500 hover:text-[#facc15] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors"
+        >
+          +{activeTasks.length - 8} more →
+        </button>
+      )}
+    </div>
+  );
+}
+
 function AlarmsPanel({ uid }: { uid: string }) {
   const router = useRouter();
   const [alarms, setAlarms] = useState<Alarm[]>([]);
@@ -59,7 +107,7 @@ function AlarmsPanel({ uid }: { uid: string }) {
 
   if (alarms.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+      <div className="flex flex-col items-center justify-center py-8 text-center">
         <AlarmClock className="h-8 w-8 text-gray-700 mb-2" />
         <p className="text-xs text-gray-500">No alarms set</p>
         <p className="text-[10px] text-gray-600 mt-1">
@@ -133,130 +181,85 @@ export default function MissionControl() {
   const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("missions");
-  const { tasks, loading: tasksLoading } = useTasks(user?.uid);
-
-  const activeTasks = tasks.filter(
-    (t) => !t.completed && !t.penalty
-  );
+  const instanceId = useId();
 
   return (
     <div className="h-full flex flex-col">
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 px-5 pt-4 pb-3">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors ${
-              activeTab === tab.id
-                ? "text-white"
-                : "text-gray-600 hover:text-gray-400"
-            }`}
-          >
-            {activeTab === tab.id && (
-              <motion.div
-                layoutId="mc-tab-indicator"
-                className="absolute inset-0 rounded-lg"
-                style={{
-                  background: `${tab.color}10`,
-                  border: `1px solid ${tab.color}25`,
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              />
-            )}
-            <span className="relative z-10 flex items-center gap-1.5">
-              <tab.icon
-                className="h-3 w-3"
-                style={{
-                  color: activeTab === tab.id ? tab.color : undefined,
-                  filter:
-                    activeTab === tab.id
+      {/* Tab bar — cyber-terminal pill tabs */}
+      <div className="flex items-center gap-1 px-5 pt-4 pb-3 flex-shrink-0">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors ${
+                isActive ? "text-white" : "text-gray-600 hover:text-gray-400"
+              }`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId={`mc-tab-${instanceId}`}
+                  className="absolute inset-0 rounded-lg"
+                  style={{
+                    background: `${tab.color}10`,
+                    border: `1px solid ${tab.color}25`,
+                    boxShadow: `0 0 12px ${tab.color}10`,
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                <tab.icon
+                  className="h-3 w-3"
+                  style={{
+                    color: isActive ? tab.color : undefined,
+                    filter: isActive
                       ? `drop-shadow(0 0 3px ${tab.color}50)`
                       : undefined,
-                }}
-                strokeWidth={2.5}
-              />
-              {tab.label}
-            </span>
-          </button>
-        ))}
-        {activeTab === "missions" && activeTasks.length > 0 && (
-          <span
-            className="ml-auto text-[9px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-full"
-            style={{
-              background: "rgba(250, 204, 21, 0.1)",
-              color: "#facc15",
-              border: "1px solid rgba(250, 204, 21, 0.2)",
-            }}
-          >
-            {activeTasks.length}
-          </span>
-        )}
+                  }}
+                  strokeWidth={2.5}
+                />
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Panels */}
       <div className="flex-1 overflow-y-auto min-h-0 px-5 pb-5">
-        {/* Missions — conditional render to release useTasks listener */}
-        {activeTab === "missions" && (
-          <AnimatePresence mode="wait">
+        {/* Missions — conditional mount releases useTasks Firestore listener */}
+        <AnimatePresence mode="wait">
+          {activeTab === "missions" && (
             <motion.div
               key="missions"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15 }}
-              className="space-y-1.5"
             >
-              {tasksLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-14 rounded-xl bg-white/[0.02] animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : activeTasks.length > 0 ? (
-                <>
-                  {activeTasks.slice(0, 8).map((task) => (
-                    <DashTaskItem
-                      key={task.id}
-                      task={task}
-                      onSelect={() => router.push("/tasks")}
-                    />
-                  ))}
-                  {activeTasks.length > 8 && (
-                    <button
-                      onClick={() => router.push("/tasks")}
-                      className="w-full text-center py-2 text-[10px] text-gray-500 hover:text-[#facc15] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors"
-                    >
-                      +{activeTasks.length - 8} more →
-                    </button>
-                  )}
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Target className="h-8 w-8 text-gray-700 mb-2" />
-                  <p className="text-xs text-gray-500">
-                    No active missions
-                  </p>
-                  <p className="text-[10px] text-gray-600 mt-1">
-                    Create one from the Missions page
-                  </p>
-                </div>
-              )}
+              {user && <MissionsPanel uid={user.uid} />}
             </motion.div>
-          </AnimatePresence>
-        )}
+          )}
+        </AnimatePresence>
 
-        {/* Focus — always mounted, hidden via CSS to preserve timer state */}
+        {/* Focus — always mounted via CSS display toggle to preserve timer state */}
         <div style={{ display: activeTab === "focus" ? "block" : "none" }}>
           <FocusTimer compact />
+          <div className="text-center mt-3">
+            <button
+              onClick={() => router.push("/focus")}
+              className="text-[10px] text-gray-500 hover:text-[#00d4ff] font-[family-name:var(--font-mono)] uppercase tracking-wider transition-colors"
+            >
+              Open Focus Mode →
+            </button>
+          </div>
         </div>
 
-        {/* Alarm — conditional render to release onSnapshot listener */}
-        {activeTab === "alarm" && user && (
-          <AnimatePresence mode="wait">
+        {/* Alarm — conditional mount releases onSnapshot listener */}
+        <AnimatePresence mode="wait">
+          {activeTab === "alarm" && (
             <motion.div
               key="alarm"
               initial={{ opacity: 0, y: 6 }}
@@ -264,10 +267,10 @@ export default function MissionControl() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.15 }}
             >
-              <AlarmsPanel uid={user.uid} />
+              {user && <AlarmsPanel uid={user.uid} />}
             </motion.div>
-          </AnimatePresence>
-        )}
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
