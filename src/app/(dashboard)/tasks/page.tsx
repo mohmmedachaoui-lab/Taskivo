@@ -191,21 +191,21 @@ export default function TasksPage() {
         </Button>
       </div>
 
-      {loading && (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-[72px] w-full" />
-          ))}
-        </div>
-      )}
+      <div
+        className="space-y-2 transition-opacity duration-300"
+        style={{ opacity: loading ? 1 : 0, position: loading ? "relative" : "absolute", pointerEvents: loading ? "auto" : "none" }}
+      >
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-[72px] w-full" />
+        ))}
+      </div>
 
-      {!loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className="space-y-8"
-        >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: loading ? 0 : 1 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-8"
+      >
           {failedTasks.length > 0 && (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <Card className="border-red-500/30 bg-red-500/5">
@@ -386,7 +386,6 @@ export default function TasksPage() {
         />
       )}
         </motion.div>
-      )}
     </div>
   );
 }
