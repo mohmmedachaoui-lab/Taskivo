@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
+import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import {
   createDuel,
   acceptDuel,
-  getUserDuels,
-  getCompletedDuels,
   resolveDuel,
   searchUsers,
 } from "@/lib/social";
@@ -35,59 +34,30 @@ import EmptyState from "@/components/ui/EmptyState";
 export default function DuelsPage() {
   const { user } = useAuth();
   const profile = useAppStore(s => s.profile);
-  const [duels, setDuels] = useState<Duel[]>([]);
-  const [completedDuels, setCompletedDuels] = useState<Duel[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activeDuels: duels, pendingDuels, completedDuels, loading } = useRealtimeDuels(user?.uid);
   const [showChallenge, setShowChallenge] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<{ uid: string; callsign: string; totalXP: number }[]>([]);
   const [searching, setSearching] = useState(false);
   const [stakeMultiplier, setStakeMultiplier] = useState(5);
+  const resolvingRef = useRef(new Set<string>());
 
   const totalXP = profile?.totalXP ?? 0;
   const stakeXP = calculateDuelStake(totalXP, stakeMultiplier / 100);
   const now = useCurrentTime(60000);
 
-  const loadDuels = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const [active, completed] = await Promise.all([
-        getUserDuels(user.uid),
-        getCompletedDuels(user.uid),
-      ]);
-      const now = Date.now();
-
-      let resolved = false;
-      for (const duel of active) {
-        if (duel.status === "active" && duel.endTime < now) {
-          await resolveDuel(duel.id);
-          resolved = true;
-        }
-      }
-
-      if (resolved) {
-        const [refreshedActive, refreshedCompleted] = await Promise.all([
-          getUserDuels(user.uid),
-          getCompletedDuels(user.uid),
-        ]);
-        setDuels(refreshedActive);
-        setCompletedDuels(refreshedCompleted);
-      } else {
-        setDuels(active);
-        setCompletedDuels(completed);
-      }
-    } catch (err) {
-      console.error("Failed to load duels:", err);
-    }
-    setLoading(false);
-  }, [user]);
+  const allActive = useMemo(() => [...duels, ...pendingDuels], [duels, pendingDuels]);
 
   useEffect(() => {
-    loadDuels();
-    const interval = setInterval(loadDuels, 10000);
-    return () => clearInterval(interval);
-  }, [loadDuels]);
+    if (!user) return;
+    const expired = allActive.filter(
+      (d) => d.status === "active" && d.endTime < now && !resolvingRef.current.has(d.id)
+    );
+    for (const duel of expired) {
+      resolvingRef.current.add(duel.id);
+      resolveDuel(duel.id).catch(() => resolvingRef.current.delete(duel.id));
+    }
+  }, [allActive, now, user]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
@@ -107,7 +77,6 @@ export default function DuelsPage() {
     setShowChallenge(false);
     setSearchTerm("");
     setSearchResults([]);
-    await loadDuels();
   };
 
   const getTimeLeft = (endTime: number) => {
@@ -244,7 +213,7 @@ export default function DuelsPage() {
           <Card className="flex items-center justify-center py-12">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00d4ff] border-t-transparent" />
           </Card>
-        ) : duels.length === 0 ? (
+        ) : allActive.length === 0 ? (
           <EmptyState
             icon={<Swords className="h-8 w-8" strokeWidth={2.5} />}
             title="No active duels"
@@ -255,7 +224,7 @@ export default function DuelsPage() {
           />
         ) : (
           <div className="space-y-4">
-            {duels.map((duel, i) => {
+            {allActive.map((duel, i) => {
               const myXP = getMyXP(duel);
               const oppXP = getOpponentXP(duel);
               const maxXP = Math.max(myXP, oppXP, 100);
@@ -333,7 +302,7 @@ export default function DuelsPage() {
                         </span>
                       )}
                       {duel.status === "pending" && user?.uid === duel.opponentId && (
-                        <Button size="sm" onClick={async () => { if (!requireOnline()) return; await acceptDuel(duel.id); loadDuels(); }}>
+                        <Button size="sm" onClick={async () => { if (!requireOnline()) return; await acceptDuel(duel.id); }}>
                           Accept Duel
                         </Button>
                       )}

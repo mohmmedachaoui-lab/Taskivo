@@ -7,11 +7,11 @@ import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/store";
+import { useRealtimeGuilds } from "@/hooks/useRealtimeGuilds";
 import {
   createGuild,
   joinGuild,
   leaveGuild,
-  getGuilds,
   getUserGuild,
   getGuildMembers,
   getGuildNews,
@@ -114,7 +114,7 @@ function GuildsSkeleton() {
 export default function GuildsPage() {
   const { user } = useAuth();
   const profile = useAppStore(s => s.profile);
-  const [guilds, setGuilds] = useState<Guild[]>([]);
+  const { guilds, loading: guildsLoading } = useRealtimeGuilds();
   const [myGuild, setMyGuild] = useState<Guild | null>(null);
   const [guildMembers, setGuildMembers] = useState<{ uid: string; callsign: string; totalXP: number; level: number }[]>([]);
   const [guildNews, setGuildNews] = useState<GuildNews[]>([]);
@@ -130,11 +130,7 @@ export default function GuildsPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const [allGuilds, userGuild] = await Promise.all([
-        getGuilds(),
-        getUserGuild(user.uid),
-      ]);
-      setGuilds(allGuilds);
+      const userGuild = await getUserGuild(user.uid);
       setMyGuild(userGuild);
 
       if (userGuild) {
@@ -155,7 +151,7 @@ export default function GuildsPage() {
     loadData();
   }, [loadData]);
 
-  if (loading) return <GuildsSkeleton />;
+  if (loading || guildsLoading) return <GuildsSkeleton />;
 
   const handleCreate = async () => {
     if (!user || !newName.trim() || !requireOnline()) return;

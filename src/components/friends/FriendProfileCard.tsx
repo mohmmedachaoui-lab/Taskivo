@@ -95,14 +95,18 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         drag="y"
         dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.3}
+        dragElastic={0.4}
         onDragEnd={(_, info) => {
-          if (info.offset.y > 60 || info.velocity.y > 300) {
+          if (info.offset.y > 40 || info.velocity.y > 200) {
             onClose();
           }
         }}
+        style={{ touchAction: "pan-x" }}
         className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-sm mx-auto z-[60] glass neon-border rounded-2xl p-5"
       >
+        <div className="flex justify-center mb-3">
+          <div className="h-1 w-8 rounded-full bg-gray-600" />
+        </div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]">
             Agent Profile

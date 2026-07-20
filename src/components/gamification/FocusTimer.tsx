@@ -33,6 +33,7 @@ export default memo(function FocusTimer() {
   const [streak, setStreak] = useState(0);
   const [showComplete, setShowComplete] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const deadlineRef = useRef<number | null>(null);
 
   const totalTime = MODES[mode].duration;
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
@@ -43,11 +44,13 @@ export default memo(function FocusTimer() {
 
   const reset = useCallback(() => {
     setIsRunning(false);
+    deadlineRef.current = null;
     setTimeLeft(MODES[mode].duration);
   }, [mode]);
 
   const switchMode = useCallback((newMode: Mode) => {
     setIsRunning(false);
+    deadlineRef.current = null;
     setMode(newMode);
     setTimeLeft(MODES[newMode].duration);
   }, []);
@@ -88,12 +91,38 @@ export default memo(function FocusTimer() {
   }, [user, profile, setProfile]);
 
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
+    if (!isRunning) return;
+
+    deadlineRef.current = Date.now() + timeLeft * 1000;
+
+    intervalRef.current = setInterval(() => {
+      if (!deadlineRef.current) return;
+      const remaining = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
+      setTimeLeft(remaining);
+    }, 250);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRunning]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!isRunning || !deadlineRef.current) return;
+      if (document.visibilityState === "visible") {
+        const remaining = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
+        setTimeLeft(remaining);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
+      deadlineRef.current = null;
+      if (intervalRef.current) clearInterval(intervalRef.current);
       if (mode === "work") {
         setSessions((prev) => prev + 1);
         setStreak((prev) => prev + 1);
@@ -103,10 +132,7 @@ export default memo(function FocusTimer() {
         switchMode("work");
       }
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning, timeLeft, mode, switchMode, saveSessionXP]);
+  }, [timeLeft, isRunning, mode, switchMode, saveSessionXP]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

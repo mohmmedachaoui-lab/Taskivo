@@ -8,6 +8,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   limit,
   increment,
   runTransaction,
@@ -118,6 +119,7 @@ export async function searchPublicProfiles(
       collection(db(), "publicProfiles"),
       where("callsign", ">=", term),
       where("callsign", "<=", term + "\uf8ff"),
+      orderBy("callsign"),
       limit(10)
     )
   );
@@ -128,13 +130,11 @@ export async function getLeaderboard(topN: number = 50): Promise<PublicProfile[]
   const snap = await getDocs(
     query(
       collection(db(), "publicProfiles"),
-      where("totalXP", ">=", 0),
+      orderBy("totalXP", "desc"),
       limit(topN)
     )
   );
-  return snap.docs
-    .map((d) => d.data() as PublicProfile)
-    .sort((a, b) => b.totalXP - a.totalXP);
+  return snap.docs.map((d) => d.data() as PublicProfile);
 }
 
 export async function applyXPTransaction(

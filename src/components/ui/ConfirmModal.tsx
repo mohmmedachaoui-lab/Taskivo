@@ -46,14 +46,18 @@ export default function ConfirmModal({
             transition={{ duration: 0.15 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.3}
+            dragElastic={0.4}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 60 || info.velocity.y > 300) {
+              if (info.offset.y > 40 || info.velocity.y > 200) {
                 onCancel();
               }
             }}
+            style={{ touchAction: "pan-x" }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[70] glass neon-border rounded-2xl p-5"
           >
+            <div className="flex justify-center mb-3">
+              <div className="h-1 w-8 rounded-full bg-gray-600" />
+            </div>
             <div className="flex items-center gap-3 mb-3">
               <div className="h-8 w-8 rounded-lg bg-[#ef4444]/10 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="h-4 w-4 text-[#ef4444]" />

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
 import { Trophy, Lock, Zap, Flame, Brain, Swords, AlertTriangle, RefreshCw } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/store";
 import { useSkeletonTimeout } from "@/hooks/useSkeletonTimeout";
 import { ACHIEVEMENTS_DEFINITIONS, calculateLevel } from "@/lib/xp-engine";
@@ -73,8 +73,26 @@ export default function AchievementsPage() {
   const profile = useAppStore(s => s.profile);
   const stats = useAppStore(s => s.stats);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
+  const prevUnlockedRef = useRef<Set<string>>(new Set());
   const loading = !stats || !profile;
   const { timedOut, reset } = useSkeletonTimeout(loading);
+
+  const unlocked = useMemo(() => stats?.achievements ?? [], [stats?.achievements]);
+
+  useEffect(() => {
+    const currentSet = new Set(unlocked);
+    const prevSet = prevUnlockedRef.current;
+    if (prevSet.size > 0) {
+      const newIds = [...currentSet].filter((id) => !prevSet.has(id));
+      if (newIds.length > 0) {
+        setNewlyUnlocked(new Set(newIds));
+        const timer = setTimeout(() => setNewlyUnlocked(new Set()), 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevUnlockedRef.current = currentSet;
+  }, [unlocked]);
 
   if (loading && !timedOut) return <AchievementsSkeleton />;
   if (loading && timedOut) {
@@ -90,7 +108,6 @@ export default function AchievementsPage() {
     );
   }
 
-  const unlocked = stats?.achievements ?? [];
   const tasksCompleted = stats?.tasksCompleted ?? 0;
   const currentStreak = stats?.currentStreak ?? 0;
   const level = profile ? calculateLevel(profile.totalXP) : 1;
@@ -189,6 +206,21 @@ export default function AchievementsPage() {
                     : "opacity-80"
                 }`}
               >
+                <AnimatePresence>
+                  {newlyUnlocked.has(ach.id) && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0 rounded-2xl pointer-events-none z-10"
+                      style={{
+                        boxShadow: "inset 0 0 30px rgba(250, 204, 21, 0.3), 0 0 20px rgba(250, 204, 21, 0.2)",
+                        background: "radial-gradient(ellipse at center, rgba(250, 204, 21, 0.08) 0%, transparent 70%)",
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
                 <div className="flex items-start gap-4">
                   <div className={`text-3xl ${isUnlocked ? "" : "grayscale opacity-50"}`}>
                     {ach.icon}
