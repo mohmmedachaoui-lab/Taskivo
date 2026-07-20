@@ -14,7 +14,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={clsx(
-          "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-300 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)] text-xs tracking-wide uppercase",
+          "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-300 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)] text-xs tracking-wide uppercase active:scale-[0.97]",
           {
             "bg-[#00d4ff] text-gray-900 hover:bg-[#00a8cc] shadow-lg shadow-[#00d4ff]/20 hover-glow":
               variant === "primary",
@@ -22,9 +22,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               variant === "secondary",
             "text-gray-500 hover:text-[#00d4ff] hover:bg-[#00d4ff]/5":
               variant === "ghost",
-            "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40":
+            "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 hover-glow":
               variant === "danger",
-            "bg-transparent text-[#00d4ff] border border-[#00d4ff]/30 hover:bg-[#00d4ff]/10 hover:border-[#00d4ff]/60 pulse-neon":
+            "bg-transparent text-[#00d4ff] border border-[#00d4ff]/30 hover:bg-[#00d4ff]/10 hover:border-[#00d4ff]/60 pulse-neon hover-glow":
               variant === "neon",
           },
           {
