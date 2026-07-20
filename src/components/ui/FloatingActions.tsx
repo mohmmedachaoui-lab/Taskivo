@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Plus, CheckSquare, Swords, Timer, X } from "lucide-react";
 
 const actions = [
-  { href: "/tasks", label: "New Task", icon: CheckSquare },
+  { href: "/tasks", label: "New Mission", icon: CheckSquare },
   { href: "/duels", label: "Challenge", icon: Swords },
   { href: "/focus", label: "Focus", icon: Timer },
 ];

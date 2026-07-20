@@ -82,7 +82,7 @@ export default memo(function HeroSection() {
         <p className="text-xs text-gray-500 mb-4 font-[family-name:var(--font-mono)]">
           {tasksDone > 0
             ? `${tasksDone} tasks completed${streak > 0 ? ` · ${streak}d streak` : ""}`
-            : "Start your first task to begin your mission."}
+            : "Start your first mission to begin your journey."}
         </p>
       </div>
 

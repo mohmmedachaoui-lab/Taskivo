@@ -105,7 +105,7 @@ export default function DashboardPage() {
         </BentoCard>
 
         <BentoCard variant="yellow" delay={0.1}>
-          <PulsingStatCard label="Tasks Done" value={tasksDone} icon={CheckCircle2} color="#facc15" />
+          <PulsingStatCard label="Missions Done" value={tasksDone} icon={CheckCircle2} color="#facc15" />
         </BentoCard>
 
         <BentoCard variant="cyan" delay={0.15}>

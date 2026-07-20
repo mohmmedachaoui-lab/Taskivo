@@ -9,10 +9,10 @@ import { useAppStore } from "@/store";
 import { useSkeletonTimeout } from "@/hooks/useSkeletonTimeout";
 import { ACHIEVEMENTS_DEFINITIONS, calculateLevel } from "@/lib/xp-engine";
 
-const CATEGORIES = ["All", "Tasks", "Streaks", "Progression", "Duels", "Focus", "Special"] as const;
+const CATEGORIES = ["All", "Missions", "Streaks", "Progression", "Duels", "Focus", "Special"] as const;
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   All: <Trophy className="h-4 w-4" />,
-  Tasks: <Zap className="h-4 w-4" />,
+  Missions: <Zap className="h-4 w-4" />,
   Streaks: <Flame className="h-4 w-4" />,
   Progression: <Trophy className="h-4 w-4" />,
   Duels: <Swords className="h-4 w-4" />,

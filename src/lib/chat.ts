@@ -235,6 +235,7 @@ export async function getUserProfile(
   photoURL: string | null;
   level: number;
   totalXP: number;
+  status?: string;
 } | null> {
   const profile = await getPublicProfile(uid);
   if (!profile) return null;
@@ -245,6 +246,7 @@ export async function getUserProfile(
     photoURL: profile.photoURL,
     level: profile.level,
     totalXP: profile.totalXP,
+    status: profile.status,
   };
 }
 

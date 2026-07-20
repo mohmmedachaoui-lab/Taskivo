@@ -7,7 +7,7 @@ import { Target, Users, Swords, Trophy, Shield, Sparkles } from "lucide-react";
 const FEATURES = [
   {
     icon: Target,
-    title: "Cyber Tasks",
+    title: "Cyber Missions",
     desc: "Break missions into subtasks. Each completion triggers an XP injection. Miss a deadline and the penalty engine deducts XP — every second counts.",
     gradient: "from-cyan-500/20 to-blue-600/20",
     borderColor: "rgba(0, 212, 255, 0.2)",
@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: Trophy,
     title: "Achievements",
-    desc: "20 milestones across 7 categories. From first task to legend status — every unlock is a permanent mark of your dedication.",
+    desc: "20 milestones across 7 categories. From first mission to legend status — every unlock is a permanent mark of your dedication.",
     gradient: "from-yellow-500/20 to-amber-600/20",
     borderColor: "rgba(250, 204, 21, 0.2)",
     iconColor: "#facc15",
@@ -44,7 +44,7 @@ const FEATURES = [
   {
     icon: Shield,
     title: "Deep Mode",
-    desc: "Activate Deep Mode to dim all distractions. Only your active task glows. The cybernetic focus state for maximum flow.",
+    desc: "Activate Deep Mode to dim all distractions. Only your active mission glows. The cybernetic focus state for maximum flow.",
     gradient: "from-emerald-500/20 to-green-600/20",
     borderColor: "rgba(16, 185, 129, 0.2)",
     iconColor: "#10b981",
@@ -53,7 +53,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "AI Agent",
-    desc: "Your personal productivity AI. Analyzes patterns, suggests optimal task order, and predicts when you'll hit your next rank.",
+    desc: "Your personal productivity AI. Analyzes patterns, suggests optimal mission order, and predicts when you'll hit your next rank.",
     gradient: "from-pink-500/20 to-rose-600/20",
     borderColor: "rgba(236, 72, 153, 0.2)",
     iconColor: "#ec4899",

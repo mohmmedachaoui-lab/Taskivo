@@ -18,7 +18,7 @@ import { useWeeklyGoals } from "@/hooks/useWeeklyGoals";
 import { WeeklyGoal } from "@/types";
 
 const SUGGESTED_TASKS = [
-  "Complete 3 medium tasks",
+  "Complete 3 medium missions",
   "2 focus sessions (25m each)",
   "Review and organize inbox",
   "Exercise for 30 minutes",
@@ -282,7 +282,7 @@ export default function WeeklyGoals() {
                             type="text"
                             value={newTaskTitle}
                             onChange={(e) => setNewTaskTitle(e.target.value)}
-                            placeholder="Task description"
+                            placeholder="Mission description"
                             className="w-full bg-transparent text-xs text-white placeholder-gray-600 outline-none font-[family-name:var(--font-mono)]"
                             onKeyDown={(e) =>
                               e.key === "Enter" && handleAddTask(goal.id)

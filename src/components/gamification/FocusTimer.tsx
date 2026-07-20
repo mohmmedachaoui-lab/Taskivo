@@ -10,7 +10,7 @@ import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
 import { calculateWinXP, checkAndUnlockAchievements } from "@/lib/xp-engine";
 import { addActivityFeedItem, updateActiveDuels } from "@/lib/social";
-import { incrementPublicXP } from "@/lib/profiles";
+import { incrementPublicXP, setProfileStatus } from "@/lib/profiles";
 
 type Mode = "work" | "break";
 
@@ -39,8 +39,14 @@ export default memo(function FocusTimer() {
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
 
   const toggle = useCallback(() => {
-    setIsRunning((prev) => !prev);
-  }, []);
+    setIsRunning((prev) => {
+      const next = !prev;
+      if (user) {
+        setProfileStatus(user.uid, next ? "focusing" : "idle").catch(() => {});
+      }
+      return next;
+    });
+  }, [user]);
 
   const reset = useCallback(() => {
     setIsRunning(false);
@@ -123,6 +129,7 @@ export default memo(function FocusTimer() {
       setIsRunning(false);
       deadlineRef.current = null;
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (user) setProfileStatus(user.uid, "idle").catch(() => {});
       if (mode === "work") {
         setSessions((prev) => prev + 1);
         setStreak((prev) => prev + 1);
@@ -132,7 +139,7 @@ export default memo(function FocusTimer() {
         switchMode("work");
       }
     }
-  }, [timeLeft, isRunning, mode, switchMode, saveSessionXP]);
+  }, [timeLeft, isRunning, mode, switchMode, saveSessionXP, user]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

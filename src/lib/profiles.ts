@@ -18,6 +18,8 @@ import { calculateStreakUpdate, getLocalDateString, shouldResetFreezes } from "@
 
 const db = () => getFirebaseDb();
 
+export type ProfileStatus = "idle" | "focusing";
+
 export interface PublicProfile {
   uid: string;
   callsign: string;
@@ -27,6 +29,7 @@ export interface PublicProfile {
   rank: string;
   level: number;
   totalXP: number;
+  status?: ProfileStatus;
 }
 
 function pickPublic<T extends Record<string, unknown>>(data: T): PublicProfile {
@@ -39,6 +42,7 @@ function pickPublic<T extends Record<string, unknown>>(data: T): PublicProfile {
     rank: String(data.rank ?? "Novice"),
     level: Number(data.level ?? 1),
     totalXP: Number(data.totalXP ?? 0),
+    status: (data.status as ProfileStatus) ?? "idle",
   };
 }
 
@@ -282,4 +286,9 @@ export async function applyStreakFreeze(uid: string): Promise<boolean> {
 
     return true;
   });
+}
+
+export async function setProfileStatus(uid: string, status: ProfileStatus): Promise<void> {
+  const dbInstance = getFirebaseDb();
+  await updateDoc(doc(dbInstance, "publicProfiles", uid), { status });
 }

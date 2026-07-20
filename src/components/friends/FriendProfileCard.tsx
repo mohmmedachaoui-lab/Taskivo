@@ -9,7 +9,7 @@ import { getUserProfile, getUserStatsForProfile, getOrCreateDirectConversation }
 import { removeFriend } from "@/lib/social";
 import { useChatStore } from "@/store";
 import { calculateXPProgress, getRankTitle } from "@/lib/xp-engine";
-import { X, MessageSquare, Swords, Trophy, Flame, Target, UserMinus } from "lucide-react";
+import { X, MessageSquare, Swords, Trophy, Flame, Target, UserMinus, Zap } from "lucide-react";
 import Button from "@/components/ui/Button";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
@@ -23,7 +23,7 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
   const profile = useAppStore(s => s.profile);
   const setActiveConversation = useChatStore(s => s.setActiveConversation);
   const setDrawerOpen = useChatStore(s => s.setDrawerOpen);
-  const [data, setData] = useState<{ uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number; totalXP: number } | null>(null);
+  const [data, setData] = useState<{ uid: string; callsign: string; friendCode: string; photoURL: string | null; level: number; totalXP: number; status?: string } | null>(null);
   const [stats, setStats] = useState<{ tasksCompleted: number; duelsWon: number; currentStreak: number; achievements: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -126,7 +126,14 @@ export default function FriendProfileCard({ uid, onClose }: FriendProfileCardPro
             )}
           </div>
           <div>
-            <p className="text-base font-bold text-white">{data.callsign}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-base font-bold text-white">{data.callsign}</p>
+              {data.status === "focusing" && (
+                <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[#00d4ff]/10 text-[#00d4ff] font-[family-name:var(--font-mono)]">
+                  <Zap className="h-2.5 w-2.5" /> Focusing
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#a855f7]/10 text-[#a855f7] font-[family-name:var(--font-mono)]">
                 Lvl {level}

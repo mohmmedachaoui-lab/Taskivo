@@ -179,15 +179,15 @@ export default function TasksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-mono)] tracking-tight">
-            <span className="text-[#00d4ff]">&gt;</span> Tasks
+            <span className="text-[#00d4ff]">&gt;</span> Missions
           </h1>
           <p className="text-gray-500 mt-0.5 text-xs font-[family-name:var(--font-mono)] uppercase tracking-widest">
-            Complete tasks to earn XP — miss deadlines and you lose XP
+            Complete missions to earn XP — miss deadlines and you lose XP
           </p>
         </div>
         <Button onClick={() => setShowAdd(!showAdd)} className="gap-2">
           <Plus className="h-4 w-4" />
-          New Task
+          New Mission
         </Button>
       </div>
 
@@ -379,9 +379,9 @@ export default function TasksPage() {
         <EmptyState
           icon={<Flame className="h-8 w-8" strokeWidth={2.5} />}
           title="No active missions"
-          description="Your quest log is empty. Create a task to start earning XP and level up your agent."
+          description="Your quest log is empty. Create a mission to start earning XP and level up your agent."
           accent="#facc15"
-          actionLabel="Create First Task"
+          actionLabel="Create First Mission"
           onAction={() => setShowAdd(true)}
         />
       )}

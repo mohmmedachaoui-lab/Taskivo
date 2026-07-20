@@ -7,15 +7,15 @@ import ScrollReveal from "./ScrollReveal";
 const FAQS = [
   {
     q: "What is Taskivo?",
-    a: "Taskivo is a cybernetic productivity platform that gamifies your daily tasks. You earn XP for completing missions, lose XP for missing deadlines, and compete against friends in real-time duels.",
+    a: "Taskivo is a cybernetic productivity platform that gamifies your daily missions. You earn XP for completing missions, lose XP for missing deadlines, and compete against friends in real-time duels.",
   },
   {
     q: "How does the XP system work?",
-    a: "Every task you complete awards XP based on difficulty. Easy tasks give a base amount, extreme tasks give 4x. Missing a deadline triggers a penalty that deducts XP from your total. Your XP determines your rank and leaderboard position.",
+    a: "Every mission you complete awards XP based on difficulty. Easy missions give a base amount, extreme missions give 4x. Missing a deadline triggers a penalty that deducts XP from your total. Your XP determines your rank and leaderboard position.",
   },
   {
     q: "What are Duels?",
-    a: "Duels are head-to-head XP battles. You challenge another agent and set a stake (1–15% of your total XP). Both agents work on tasks during the duel period. The agent with the most XP earned wins and takes the loser's stake.",
+    a: "Duels are head-to-head XP battles. You challenge another agent and set a stake (1–15% of your total XP). Both agents work on missions during the duel period. The agent with the most XP earned wins and takes the loser's stake.",
   },
   {
     q: "How do Guilds work?",
@@ -23,11 +23,11 @@ const FAQS = [
   },
   {
     q: "What is Deep Mode?",
-    a: "Deep Mode is an immersive focus state. When activated, all non-essential UI elements dim and blur. Only your active task remains visible with a neon glow. It's designed to maximize your flow state.",
+    a: "Deep Mode is an immersive focus state. When activated, all non-essential UI elements dim and blur. Only your active mission remains visible with a neon glow. It's designed to maximize your flow state.",
   },
   {
     q: "Is my data secure?",
-    a: "All data is stored in Firebase with industry-standard encryption. Your tasks, XP, and profile are tied to your Google account. We never sell or share your personal data.",
+    a: "All data is stored in Firebase with industry-standard encryption. Your missions, XP, and profile are tied to your Google account. We never sell or share your personal data.",
   },
 ];
 

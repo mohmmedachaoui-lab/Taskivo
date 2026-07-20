@@ -88,10 +88,10 @@ export function getRankTitle(level: number): string {
 }
 
 export const ACHIEVEMENTS_DEFINITIONS = [
-  { id: "first_task", name: "First Steps", description: "Complete your first task", icon: "🎯", requirement: 1, type: "tasks_completed" as const, category: "Tasks" },
-  { id: "ten_tasks", name: "Getting Started", description: "Complete 10 tasks", icon: "🔥", requirement: 10, type: "tasks_completed" as const, category: "Tasks" },
-  { id: "fifty_tasks", name: "Half Century", description: "Complete 50 tasks", icon: "⚡", requirement: 50, type: "tasks_completed" as const, category: "Tasks" },
-  { id: "hundred_tasks", name: "Century", description: "Complete 100 tasks", icon: "💎", requirement: 100, type: "tasks_completed" as const, category: "Tasks" },
+  { id: "first_task", name: "First Steps", description: "Complete your first mission", icon: "🎯", requirement: 1, type: "tasks_completed" as const, category: "Missions" },
+  { id: "ten_tasks", name: "Getting Started", description: "Complete 10 missions", icon: "🔥", requirement: 10, type: "tasks_completed" as const, category: "Missions" },
+  { id: "fifty_tasks", name: "Half Century", description: "Complete 50 missions", icon: "⚡", requirement: 50, type: "tasks_completed" as const, category: "Missions" },
+  { id: "hundred_tasks", name: "Century", description: "Complete 100 missions", icon: "💎", requirement: 100, type: "tasks_completed" as const, category: "Missions" },
   { id: "streak_3", name: "On Fire", description: "3-day streak", icon: "🔥", requirement: 3, type: "streak" as const, category: "Streaks" },
   { id: "streak_7", name: "Week Warrior", description: "7-day streak", icon: "⚔️", requirement: 7, type: "streak" as const, category: "Streaks" },
   { id: "streak_30", name: "Unstoppable", description: "30-day streak", icon: "👑", requirement: 30, type: "streak" as const, category: "Streaks" },
@@ -106,7 +106,7 @@ export const ACHIEVEMENTS_DEFINITIONS = [
   { id: "duel_win_15", name: "Duel Legend", description: "Win 15 duels", icon: "🏆", requirement: 15, type: "duels_won" as const, category: "Duels" },
   { id: "focus_10", name: "Deep Work Master", description: "Complete 10 focus sessions", icon: "🧠", requirement: 10, type: "focus_sessions" as const, category: "Focus" },
   { id: "focus_50", name: "Zen Master", description: "Complete 50 focus sessions", icon: "🧘", requirement: 50, type: "focus_sessions" as const, category: "Focus" },
-  { id: "early_bird", name: "Early Bird", description: "Complete a task before 8 AM", icon: "🐦", requirement: 1, type: "early_bird" as const, category: "Special" },
+  { id: "early_bird", name: "Early Bird", description: "Complete a mission before 8 AM", icon: "🐦", requirement: 1, type: "early_bird" as const, category: "Special" },
 ] as const;
 
 export async function checkAndUnlockAchievements(uid: string): Promise<string[]> {

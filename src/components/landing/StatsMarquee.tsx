@@ -7,7 +7,7 @@ const STATS = [
   { icon: Trophy, label: "Achievements Unlocked", value: "184,209", color: "#facc15" },
   { icon: Swords, label: "Duels Fought", value: "92,481", color: "#ef4444" },
   { icon: Users, label: "Active Agents", value: "12,847", color: "#a855f7" },
-  { icon: Target, label: "Tasks Completed", value: "1,203,847", color: "#10b981" },
+  { icon: Target, label: "Missions Completed", value: "1,203,847", color: "#10b981" },
   { icon: Flame, label: "Total Streak Days", value: "384,291", color: "#f97316" },
   { icon: Crown, label: "Guilds Formed", value: "4,821", color: "#facc15" },
   { icon: Shield, label: "Deep Mode Hours", value: "567,102", color: "#00d4ff" },

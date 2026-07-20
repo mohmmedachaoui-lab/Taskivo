@@ -15,7 +15,7 @@ import {
 
 const items = [
   { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/tasks", label: "Missions", icon: CheckSquare },
   { href: "/alarm", label: "Alarm", icon: AlarmClock },
   { href: "/duels", label: "Duels", icon: Swords },
   { href: "/focus", label: "Focus", icon: Timer },

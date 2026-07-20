@@ -114,7 +114,7 @@ export default function StatsPage() {
   const rank = getRankTitle(level);
 
   const metrics = [
-    { icon: <CheckCircle className="h-4 w-4" />, label: "TASKS DONE", value: stats?.tasksCompleted ?? 0, color: "text-emerald-400" },
+    { icon: <CheckCircle className="h-4 w-4" />, label: "MISSIONS DONE", value: stats?.tasksCompleted ?? 0, color: "text-emerald-400" },
     { icon: <Flame className="h-4 w-4" />, label: "BEST STREAK", value: `${stats?.longestStreak ?? 0}d`, color: "text-orange-400" },
     { icon: <Zap className="h-4 w-4" />, label: "TOTAL XP", value: (profile?.totalXP ?? 0).toLocaleString(), color: "text-[#00d4ff]" },
     { icon: <Target className="h-4 w-4" />, label: "SUCCESS RATE", value: stats && stats.tasksCompleted + stats.tasksFailed > 0 ? `${Math.round((stats.tasksCompleted / (stats.tasksCompleted + stats.tasksFailed)) * 100)}%` : "0%", color: "text-[#00d4ff]" },

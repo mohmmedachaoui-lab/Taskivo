@@ -20,11 +20,16 @@ import {
   Swords,
   Trophy,
   Users,
+  ShieldAlert,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { showToast } from "@/components/ui/Toast";
 
 export default function SettingsPage() {
   const profile = useAppStore(s => s.profile);
@@ -40,6 +45,11 @@ export default function SettingsPage() {
     duels: true,
     achievements: true,
   });
+  const [showSignOut, setShowSignOut] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [resetStep, setResetStep] = useState(0);
+  const [resetInput, setResetInput] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +66,22 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await signOut(getFirebaseAuth());
     router.push("/");
+  };
+
+  const handleResetData = async () => {
+    if (!user) return;
+    setResetting(true);
+    try {
+      await deleteDoc(doc(getFirebaseDb(), "stats", user.uid));
+      await deleteDoc(doc(getFirebaseDb(), "publicProfiles", user.uid));
+      await deleteDoc(doc(getFirebaseDb(), "users", user.uid));
+      await signOut(getFirebaseAuth());
+      showToast("Data cleared. Signing out...", "success");
+      router.push("/");
+    } catch {
+      showToast("Failed to reset data. Please try again.", "error");
+    }
+    setResetting(false);
   };
 
   const copyFriendCode = () => {
@@ -202,16 +228,105 @@ export default function SettingsPage() {
       {/* Account */}
       <div>
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 px-1">Account</h3>
-        <Card className="p-0">
+        <Card className="divide-y divide-white/[0.04] p-0">
           <button
-            onClick={handleSignOut}
-            className="flex items-center gap-4 px-6 py-4 w-full text-left hover:bg-red-500/[0.04] transition-colors rounded-2xl"
+            onClick={() => setShowSignOut(true)}
+            className="flex items-center gap-4 px-6 py-4 w-full text-left hover:bg-white/[0.02] transition-colors"
           >
-            <LogOut className="h-5 w-5 text-red-500" />
-            <span className="text-sm font-medium text-red-500">Sign Out</span>
+            <LogOut className="h-5 w-5 text-gray-400" />
+            <span className="text-sm font-medium text-gray-300">Sign Out</span>
           </button>
         </Card>
       </div>
+
+      {/* Danger Zone */}
+      <div>
+        <h3 className="text-sm font-medium text-[#ef4444]/60 mb-3 px-1 flex items-center gap-2">
+          <ShieldAlert className="h-3.5 w-3.5" />
+          Danger Zone
+        </h3>
+        <Card className="border-[#ef4444]/10 p-0">
+          <button
+            onClick={() => { setShowReset(true); setResetStep(0); setResetInput(""); }}
+            className="flex items-center gap-4 px-6 py-4 w-full text-left hover:bg-[#ef4444]/[0.04] transition-colors"
+          >
+            <Trash2 className="h-5 w-5 text-[#ef4444]" />
+            <div className="flex-1">
+              <span className="text-sm font-medium text-[#ef4444]">Reset All Data</span>
+              <p className="text-xs text-gray-500 mt-0.5">Permanently delete your stats, progress, and profile</p>
+            </div>
+          </button>
+        </Card>
+      </div>
+
+      {/* Sign Out Confirmation */}
+      <ConfirmDialog
+        open={showSignOut}
+        title="Sign Out"
+        message="Are you sure you want to sign out? You'll need to log back in to access your account."
+        confirmLabel="Sign Out"
+        variant="warning"
+        onConfirm={handleSignOut}
+        onCancel={() => setShowSignOut(false)}
+      />
+
+      {/* Reset Data — Step 1: Initial confirmation */}
+      <ConfirmDialog
+        open={showReset && resetStep === 0}
+        title="Reset All Data"
+        message="This will permanently delete ALL your stats, achievements, progress, and profile data. This cannot be undone."
+        confirmLabel="I understand, continue"
+        variant="danger"
+        onConfirm={() => setResetStep(1)}
+        onCancel={() => setShowReset(false)}
+      />
+
+      {/* Reset Data — Step 2: Type-to-confirm */}
+      {showReset && resetStep === 1 && (
+        <>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]" onClick={() => setShowReset(false)} />
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-xs mx-auto z-[80] glass neon-border border-[#ef4444]/30 rounded-2xl p-5">
+            <div className="flex justify-center mb-3">
+              <div className="h-1 w-8 rounded-full bg-gray-600" />
+            </div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-9 w-9 rounded-xl bg-[#ef4444]/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-[#ef4444]" />
+              </div>
+              <h3 className="text-sm font-semibold text-white font-[family-name:var(--font-mono)]">
+                Type &quot;DELETE&quot; to confirm
+              </h3>
+            </div>
+            <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+              This action is irreversible. All your data will be permanently removed.
+            </p>
+            <input
+              type="text"
+              value={resetInput}
+              onChange={(e) => setResetInput(e.target.value)}
+              placeholder='Type "DELETE"'
+              autoFocus
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ef4444]/20 bg-[#ef4444]/5 text-white placeholder-gray-500 text-sm font-[family-name:var(--font-mono)] focus:ring-2 focus:ring-[#ef4444]/40 focus:border-transparent mb-4"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowReset(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-gray-300 text-sm font-medium hover:bg-white/[0.08] transition-colors"
+                disabled={resetting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetData}
+                disabled={resetInput !== "DELETE" || resetting}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-sm font-medium border border-[#ef4444]/40 shadow-[0_0_20px_rgba(239,68,68,0.2)] disabled:opacity-40 disabled:pointer-events-none transition-all"
+              >
+                {resetting ? "Deleting..." : "Delete Everything"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

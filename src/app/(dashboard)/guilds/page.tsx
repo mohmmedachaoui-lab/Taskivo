@@ -33,6 +33,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 function GuildsSkeleton() {
   return (
@@ -125,6 +126,7 @@ export default function GuildsPage() {
   const [creating, setCreating] = useState(false);
   const [showMembers, setShowMembers] = useState(true);
   const [showNews, setShowNews] = useState(true);
+  const [kickTarget, setKickTarget] = useState<{ uid: string; callsign: string } | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -182,8 +184,13 @@ export default function GuildsPage() {
 
   const handleKick = async (targetUid: string, targetCallsign: string) => {
     if (!user || !myGuild || !requireOnline()) return;
-    if (!confirm(`Kick ${targetCallsign} from the guild?`)) return;
-    await kickMember(user.uid, myGuild.id, targetUid, targetCallsign);
+    setKickTarget({ uid: targetUid, callsign: targetCallsign });
+  };
+
+  const confirmKick = async () => {
+    if (!user || !myGuild || !kickTarget) return;
+    await kickMember(user.uid, myGuild.id, kickTarget.uid, kickTarget.callsign);
+    setKickTarget(null);
     await loadData();
   };
 
@@ -446,6 +453,16 @@ export default function GuildsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!kickTarget}
+        title="Kick Member"
+        message={`Remove ${kickTarget?.callsign ?? ""} from the guild? They can rejoin later with an invite.`}
+        confirmLabel="Kick"
+        variant="danger"
+        onConfirm={confirmKick}
+        onCancel={() => setKickTarget(null)}
+      />
     </div>
   );
 }

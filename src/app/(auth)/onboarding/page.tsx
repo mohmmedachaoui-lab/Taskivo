@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 const FOCUS_OPTIONS = [
-  { id: "tasks", label: "Missions", desc: "Create and complete tasks", icon: Target, color: "#facc15" },
+  { id: "tasks", label: "Missions", desc: "Create and complete missions", icon: Target, color: "#facc15" },
   { id: "focus", label: "Deep Work", desc: "Pomodoro focus sessions", icon: Zap, color: "#00d4ff" },
   { id: "duels", label: "Compete", desc: "1v1 XP duels", icon: Swords, color: "#ef4444" },
 ] as const;

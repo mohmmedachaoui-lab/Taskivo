@@ -30,7 +30,7 @@ import {
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, accent: "#00d4ff" },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare, accent: "#facc15" },
+  { href: "/tasks", label: "Missions", icon: CheckSquare, accent: "#facc15" },
   { href: "/alarm", label: "Alarm", icon: AlarmClock, accent: "#f97316" },
   { href: "/duels", label: "Duels", icon: Swords, accent: "#ef4444" },
   { href: "/focus", label: "Focus", icon: Timer, accent: "#3b82f6" },

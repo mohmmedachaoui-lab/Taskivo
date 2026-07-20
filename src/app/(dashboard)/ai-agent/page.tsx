@@ -35,9 +35,9 @@ export default function AIAgentPage() {
             What to expect
           </h3>
           {[
-            "Smart task prioritization based on your XP potential",
+            "Smart mission prioritization based on your XP potential",
             "Personalized productivity insights",
-            "Natural language task creation",
+            "Natural language mission creation",
             "Automated guild competition strategies",
           ].map((feature, i) => (
             <div key={i} className="flex items-start gap-2 text-xs text-gray-400">

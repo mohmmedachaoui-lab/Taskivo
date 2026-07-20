@@ -35,6 +35,7 @@ import {
   Mail,
   Copy,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 
 type Tab = "friends" | "requests" | "search";
@@ -74,6 +75,7 @@ export default function FriendsPage() {
           duelsWon: 0,
           achievements: [],
           currentStreak: 0,
+          status: p.status ?? "idle",
         }))
       );
 
@@ -331,7 +333,14 @@ export default function FriendsPage() {
                         <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#10b981] border-2 border-[#050508]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-white truncate">{friend.callsign}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium text-white truncate">{friend.callsign}</p>
+                          {friend.status === "focusing" && (
+                            <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-[#00d4ff]/10 text-[#00d4ff] font-[family-name:var(--font-mono)] flex-shrink-0">
+                              <Zap className="h-2 w-2" />
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 font-[family-name:var(--font-mono)]">
                           Lvl {friend.level} · {friend.totalXP.toLocaleString()} XP
                         </p>

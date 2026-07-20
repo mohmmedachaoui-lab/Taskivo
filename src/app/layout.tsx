@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ServiceWorkerRegister } from "@/components/layout/ServiceWorkerRegister";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -53,7 +54,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrains.variable} font-sans`}>
         <ServiceWorkerRegister />
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <ToastProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -10,14 +10,14 @@ import Link from "next/link";
 const STEPS = [
   {
     id: "first-task",
-    label: "Create your first task",
-    description: "Head to Tasks and add something to work on",
+    label: "Create your first mission",
+    description: "Head to Missions and add something to work on",
     href: "/tasks",
   },
   {
     id: "complete-task",
-    label: "Complete a task",
-    description: "Check off a task to earn XP",
+    label: "Complete a mission",
+    description: "Check off a mission to earn XP",
     href: "/tasks",
   },
   {

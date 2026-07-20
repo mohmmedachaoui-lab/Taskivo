@@ -234,6 +234,7 @@ export interface FriendProfile {
   achievements: string[];
   currentStreak: number;
   online?: boolean;
+  status?: "idle" | "focusing";
 }
 
 // ========== CHAT STORE STATE ==========
