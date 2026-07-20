@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/hooks/useAuth";
 import { calculateLevel } from "@/lib/xp-engine";
-import { useTasks } from "@/hooks/useTasks";
+import MissionControl from "@/components/dashboard/MissionControl";
 import { useRealtimeDuels } from "@/hooks/useRealtimeDuels";
 import { useRealtimeFeed } from "@/hooks/useRealtimeFeed";
 import { useFriends } from "@/hooks/useFriends";
@@ -21,12 +21,10 @@ import StreakCard from "@/components/dashboard/StreakCard";
 import OnboardingChecklist from "@/components/ui/OnboardingChecklist";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import {
-  DashTaskItem,
   DashDuelItem,
   DashGuildMember,
   DashFeedItem,
 } from "@/components/dashboard/DashboardListItems";
-import { AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
   Zap,
@@ -44,7 +42,6 @@ export default function DashboardPage() {
   const [preview, setPreview] = useState<{ type: "task" | "duel" | "guild"; data: Task | Duel | Guild } | null>(null);
 
   const { friendUids } = useFriends(user?.uid);
-  const { tasks, loading: tasksLoading } = useTasks(user?.uid);
   const { activeDuels, pendingDuels, loading: duelsLoading } = useRealtimeDuels(user?.uid);
   const { feed } = useRealtimeFeed(user?.uid, friendUids);
 
@@ -76,10 +73,9 @@ export default function DashboardPage() {
   const totalXP = profile?.totalXP ?? 0;
 
   const allDuels = [...activeDuels, ...pendingDuels];
-  const activeTasks = tasks.filter((t) => t.completedSubtasks < t.totalSubtasks);
   const now = useCurrentTime(60000);
 
-  const dashLoading = tasksLoading || duelsLoading;
+  const dashLoading = duelsLoading;
 
   if (dashLoading) {
     return <DashboardSkeleton />;
@@ -126,41 +122,10 @@ export default function DashboardPage() {
           <AIAgentCard />
         </BentoCard>
 
-        {/* ===== ACTIVE TASKS — yellow module ===== */}
-        {activeTasks.length > 0 && (
-          <BentoCard variant="yellow" span={2} rowSpan={2} delay={0.25}>
-            <div className="p-5 h-full flex flex-col">
-              <div className="flex items-center gap-2 mb-4">
-                <div
-                  className="h-7 w-7 rounded-lg flex items-center justify-center"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(250, 204, 21, 0.1), rgba(250, 204, 21, 0.03))",
-                    border: "1px solid rgba(250, 204, 21, 0.12)",
-                  }}
-                >
-                  <Target className="h-3.5 w-3.5 text-[#facc15]" style={{ filter: "drop-shadow(0 0 3px rgba(250, 204, 21, 0.4))" }} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-xs font-semibold text-[#facc15]/80 font-[family-name:var(--font-mono)] uppercase tracking-[0.2em]">
-                  Active Missions
-                </h3>
-                <span className="ml-auto badge badge-yellow" style={{ padding: "2px 6px", fontSize: "8px" }}>
-                  {activeTasks.length}
-                </span>
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
-                <AnimatePresence mode="popLayout">
-                  {activeTasks.slice(0, 8).map((task) => (
-                    <DashTaskItem
-                      key={task.id}
-                      task={task}
-                      onSelect={(t) => setPreview({ type: "task", data: t })}
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-          </BentoCard>
-        )}
+        {/* ===== MISSION CONTROL — Tasks + Focus + Alarm ===== */}
+        <BentoCard variant="neutral" span={2} rowSpan={2} delay={0.25}>
+          <MissionControl />
+        </BentoCard>
 
         {/* ===== WAR ROOM — red module ===== */}
         {allDuels.length > 0 && (

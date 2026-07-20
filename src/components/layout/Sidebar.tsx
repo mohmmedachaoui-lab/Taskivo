@@ -95,7 +95,7 @@ export default memo(function Sidebar() {
 
       {/* Profile */}
       {profile && !collapsed && (
-        <div className="px-4 py-3 border-b border-white/[0.04]">
+        <Link href="/profile" className="block px-4 py-3 border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
           <div className="flex items-center gap-2.5">
             {profile.photoURL ? (
               <div className="relative">
@@ -116,7 +116,7 @@ export default memo(function Sidebar() {
               </span>
             </div>
           </div>
-        </div>
+        </Link>
       )}
 
       {/* Nav */}
